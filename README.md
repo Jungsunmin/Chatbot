@@ -44,7 +44,7 @@ streamlit run app/streamlit_app.py
 
 ## 문서
 
-- [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) — **진행 현황·추후 할 일**
+- [**data/status.md**](data/status.md) — **진행 현황·추후 할 일 (SSOT, 작업 전 필독)**
 - [docs/RAG_PIPELINE.md](docs/RAG_PIPELINE.md)
 - [docs/SOURCE_ALLOWLIST.md](docs/SOURCE_ALLOWLIST.md)
 - [docs/SERVER_DEPLOY.md](docs/SERVER_DEPLOY.md)
