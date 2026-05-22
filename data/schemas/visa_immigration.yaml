@@ -1,0 +1,12 @@
+category: visa_immigration
+required_slots:
+  - name: nationality_region
+    type: enum
+    options: [short_stay, long_stay, unknown]
+    labels:
+      en: Stay type (short / long)
+      ko: 체류 유형 (단기 / 장기)
+optional_slots: []
+clarify_message:
+  en: "For visa guidance, please specify:"
+  ko: "비자 안내를 위해 아래를 선택해 주세요:"

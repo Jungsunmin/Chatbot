@@ -1,0 +1,21 @@
+# 허용 수집 범위 — 폴더 경로·학교 URL은 나중에 팀이 채움
+local:
+  enabled: true
+  allowed_roots:
+    - data/sources/official
+    - data/sources/international_office
+  allowed_extensions:
+    - .pdf
+    - .md
+    - .txt
+    - .html
+    - .docx
+  follow_symlinks: false
+
+web:
+  enabled: false
+  allowed_domains: []
+  allowed_path_prefixes: []
+  seed_urls: []
+  max_pages_per_domain: 100
+  respect_robots_txt: true
