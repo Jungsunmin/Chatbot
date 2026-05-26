@@ -18,6 +18,10 @@
         "backgroundColor": "#1a365d"
       },
       "package": "edu.konkuk.intl.student"
-    }
+    },
+    "plugins": [
+      "expo-asset",
+      "expo-font"
+    ]
   }
 }

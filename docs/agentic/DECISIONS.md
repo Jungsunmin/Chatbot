@@ -85,6 +85,15 @@
 
 ---
 
+## 2026-05-26 - Source-only 답변 + 확인 턴 (파인튜닝 보류)
+
+- **Decision**: 답변은 **가이드북 청크 인용만** (`citation_first`). 검색 `low`/`none` → **모른다**. `medium` → **관련 있나요?** 확인 후 yes=인용, no=모른다. **LoRA/파인튜닝은 하지 않음.**
+- **Reason**: 사용자 요구(출처 밖 답 금지·확인 후 응답). 소형 LLM 환각 위험.
+- **Alternatives considered**: 프롬프트만 LLM, 파인튜닝 우선.
+- **Impact**: [`backend/rag/retriever.py`](../backend/rag/retriever.py) 밴드, [`pending_sessions.py`](../backend/rag/pending_sessions.py), API `status`·`confirm` 필드.
+
+---
+
 ## 2026-05-26 - 초기 구현 스택 (스파이크 브랜치)
 
 - **Decision**: `feat/initial-ui-chatbot`에서 **Expo** UI + **FastAPI** + **Chroma RAG** + **Hugging Face 공개 LLM**(`Qwen2.5-0.5B-Instruct` 기본). 파인튜닝은 보류.
@@ -100,3 +109,21 @@
 - **Reason**: Cursor 프로젝트 Skill 규칙·절차/결과 분리.
 - **Alternatives considered**: Skill 본문만 `skill_outputs`, 절차는 `AGENTS.md` 단일 파일.
 - **Impact**: 에이전트는 Skill 실행 시 `.cursor/skills/` 먼저 읽고, 완료 후 `docs/agentic/` 갱신.
+
+---
+
+## 2026-05-26 - 서류 질문: 의도 라우팅 + 제한 LLM 추출
+
+- **Decision**: `document_list` 의도는 검색 청크 안에서만 제출서류 목록 추출. **규칙 파싱 우선**, 부족 시 `CHATBOT_ANSWER_MODE=llm_document_extract`일 때만 HF 소형 LLM. LLM 출력은 **컨텍스트 부분 문자열 검증**; 0건이면 `unknown`. 일반 질문은 `citation_first` 문장 인용 유지.
+- **Reason**: 「필요 서류」 질문에 재입국·전입신고 문장이 섞이는 문제(넓은 토큰 매칭·청크 혼합). 파인튜닝 없이 faithfulness 확보.
+- **Alternatives considered**: 파인튜닝/LoRA, cross-encoder reranker만, LLM 전체 요약.
+- **Impact**: `rag/intent.py`, `document_extractor.py`, section `chunking` + `section_title` 메타, citation URL dedupe, 인덱스 재구축 필요.
+
+---
+
+## 2026-05-26 - 통합 LLM RAG 답변 (검색 → LLM)
+
+- **Decision**: 기본 `CHATBOT_ANSWER_MODE=llm_rag`. **모든 질문**은 Chroma 검색 후 **검색 청크만** HF instruct에 넣어 답변. `intent`는 검색 확장·프롬프트 힌트만. `citation_first`·`document_extractor` 기본 경로는 제거(실패 시 문장 인용 fallback만). 링크 실시간 fetch 없음.
+- **Reason**: 검색은 되나 규칙·문장 5개 추출이 질문 의도와 어긋남. 사용자 요청(통합 LLM 이해·답변).
+- **Alternatives considered**: 서류만 규칙 유지, 전 질문 `citation_first`, 더 큰 API 모델.
+- **Impact**: [`generator.py`](../backend/rag/generator.py), [`main.py`](../backend/app/main.py) `_build_answer`, [`config.py`](../backend/rag/config.py) `uses_llm_rag()`.

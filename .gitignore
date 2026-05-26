@@ -8,6 +8,7 @@ backend/data/index/
 # Node / Expo
 mobile/node_modules/
 mobile/.expo/
+mobile/.env
 mobile/dist/
 *.jks
 *.p8

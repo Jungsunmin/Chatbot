@@ -21,7 +21,14 @@ source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
 python scripts/build_index.py
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8001
+```
+
+> **포트 8000** 이 Docker 등에 점유된 경우 **8001** 사용. 모바일 `.env`의 `EXPO_PUBLIC_API_URL`도 맞춰 주세요.
+
+```bash
+# (참고) 8000이 비어 있으면 8000 사용 가능
+# uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 첫 `/chat` 요청 시 HF 모델 다운로드·로드가 발생할 수 있습니다. GPU 없으면 CPU로 동작(느릴 수 있음).
@@ -32,16 +39,19 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 cd mobile
 npm install
 cp .env.example .env
-# 실기기/에뮬레이터: PC IP로 설정
-# EXPO_PUBLIC_API_URL=http://192.168.x.x:8000
+# 실제 기기: .env 에 Mac LAN IP (127.0.0.1 사용 금지)
+# EXPO_PUBLIC_API_URL=http://192.168.x.x:8001
 npm start
+# QR/LAN 실패 시: npm run start:tunnel
 ```
+
+**QR이 안 되면** → [docs/EXPO_DEVICE.md](docs/EXPO_DEVICE.md) (Expo Go로 스캔, Tunnel 모드, API URL)
 
 ## RAG 데이터
 
-- 소스: `backend/data/sources/*.md`
-- 인덱스: `backend/data/index/` (git 제외)
-- 재구축: `python scripts/build_index.py` 또는 `POST /admin/reindex`
+- URL 목록: `backend/data/sources/urls.yaml`
+- URL 가져오기: `python scripts/ingest_urls.py` → `data/sources/web/*.md`
+- 인덱스: `python scripts/build_index.py` 또는 `POST /admin/reindex`
 
 ## 기획 문서
 

@@ -1,8 +1,13 @@
-"""마크다운·텍스트를 RAG용 청크로 분할."""
+"""마크다운·텍스트를 섹션 단위 RAG 청크로 분할."""
 from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+
+# 소제목 경계 (가이드북 HTML ingest 형식)
+_SUBSECTION_SPLIT = re.compile(
+    r"\n(?=(?:다\.|나\.|라\.|가\.|마\.|바\.)\s+[^\n])"
+)
 
 
 @dataclass
@@ -11,33 +16,88 @@ class Chunk:
     source_id: str
     title: str
     lang: str
+    source_url: str = ""
+    label: str = ""
+    doc_type: str = ""
+    section_title: str = ""
 
 
-def chunk_markdown(text: str, source_id: str, title: str, lang: str, max_chars: int = 600) -> list[Chunk]:
-    """## 헤더 또는 빈 줄 기준으로 나누고, 너무 긴 블록은 잘라 청크 생성."""
-    blocks = re.split(r"\n(?=## )", text.strip())
+def _emit_pieces(
+    text: str,
+    source_id: str,
+    page_title: str,
+    lang: str,
+    section_title: str,
+    max_chars: int,
+    out: list[Chunk],
+) -> None:
+    block = text.strip()
+    if not block:
+        return
+    while len(block) > max_chars:
+        out.append(
+            Chunk(
+                text=block[:max_chars],
+                source_id=source_id,
+                title=page_title,
+                lang=lang,
+                section_title=section_title,
+            )
+        )
+        block = block[max_chars:]
+    if block:
+        out.append(
+            Chunk(
+                text=block,
+                source_id=source_id,
+                title=page_title,
+                lang=lang,
+                section_title=section_title,
+            )
+        )
+
+
+def chunk_markdown(
+    text: str,
+    source_id: str,
+    title: str,
+    lang: str,
+    max_chars: int = 600,
+) -> list[Chunk]:
+    """## 및 다./나./라. 소제목 기준 분할 + section_title 메타."""
     chunks: list[Chunk] = []
-    for i, block in enumerate(blocks):
-        block = block.strip()
-        if not block:
+    major_blocks = re.split(r"\n(?=## )", text.strip())
+
+    for major in major_blocks:
+        major = major.strip()
+        if not major:
             continue
-        while len(block) > max_chars:
-            chunks.append(
-                Chunk(
-                    text=block[:max_chars],
-                    source_id=source_id,
-                    title=title,
-                    lang=lang,
-                )
-            )
-            block = block[max_chars:]
-        if block:
-            chunks.append(
-                Chunk(
-                    text=block,
-                    source_id=source_id,
-                    title=title,
-                    lang=lang,
-                )
-            )
+
+        section_path = title
+        if major.startswith("## "):
+            first_line = major.split("\n", 1)[0]
+            section_path = first_line.replace("##", "").strip()
+            body = major.split("\n", 1)[1] if "\n" in major else ""
+        else:
+            body = major
+
+        if not body.strip():
+            _emit_pieces(major, source_id, title, lang, section_path, max_chars, chunks)
+            continue
+
+        sub_parts = _SUBSECTION_SPLIT.split(body)
+        if len(sub_parts) <= 1:
+            _emit_pieces(body, source_id, title, lang, section_path, max_chars, chunks)
+            continue
+
+        for sub in sub_parts:
+            sub = sub.strip()
+            if not sub:
+                continue
+            sub_title = section_path
+            head = sub.split("\n", 1)[0].strip()
+            if re.match(r"^[가-힣a-zA-Z]?\.?\s*", head) and len(head) < 80:
+                sub_title = f"{section_path} > {head}"
+            _emit_pieces(sub, source_id, title, lang, sub_title, max_chars, chunks)
+
     return chunks

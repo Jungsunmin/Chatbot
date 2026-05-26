@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+from dataclasses import dataclass
 from pathlib import Path
 
 import chromadb
@@ -10,23 +11,51 @@ from sentence_transformers import SentenceTransformer
 
 from rag.chunking import chunk_markdown
 from rag.config import CHROMA_COLLECTION, EMBEDDING_MODEL, INDEX_DIR, SOURCES_DIR
+from rag.frontmatter import split_frontmatter
 
 
-def _load_sources() -> list[tuple[str, str, str, str]]:
-    """(source_id, title, lang, full_text) 목록."""
-    items: list[tuple[str, str, str, str]] = []
+@dataclass
+class LoadedSource:
+    source_id: str
+    title: str
+    lang: str
+    body: str
+    source_url: str = ""
+    label: str = ""
+    doc_type: str = ""
+
+
+def _lang_from_path(path: Path) -> str:
+    stem = path.stem
+    parts = stem.rsplit("_", 1)
+    if len(parts) == 2 and len(parts[-1]) == 2:
+        return parts[-1]
+    return "en"
+
+
+def _load_sources() -> list[LoadedSource]:
+    items: list[LoadedSource] = []
     if not SOURCES_DIR.exists():
         return items
     for path in sorted(SOURCES_DIR.glob("**/*")):
-        if path.suffix not in {".md", ".txt"}:
+        if path.suffix not in {".md", ".txt"} or path.name == "urls.yaml":
             continue
-        # 파일명 예: visa_en.md → lang en
-        stem = path.stem
-        parts = stem.rsplit("_", 1)
-        lang = parts[-1] if len(parts) == 2 and len(parts[-1]) == 2 else "en"
-        title = parts[0].replace("_", " ").title() if parts else stem
+        raw = path.read_text(encoding="utf-8")
+        meta, body = split_frontmatter(raw)
         source_id = str(path.relative_to(SOURCES_DIR))
-        items.append((source_id, title, lang, path.read_text(encoding="utf-8")))
+        title = meta.get("title") or path.stem.replace("_", " ").title()
+        lang = meta.get("lang") or _lang_from_path(path)
+        items.append(
+            LoadedSource(
+                source_id=source_id,
+                title=title,
+                lang=lang,
+                body=body,
+                source_url=meta.get("source_url", ""),
+                label=meta.get("label", ""),
+                doc_type=meta.get("type", ""),
+            )
+        )
     return items
 
 
@@ -52,8 +81,13 @@ def build_index(force: bool = False) -> int:
 
     embedder = SentenceTransformer(EMBEDDING_MODEL)
     all_chunks = []
-    for source_id, title, lang, body in _load_sources():
-        all_chunks.extend(chunk_markdown(body, source_id, title, lang))
+    for src in _load_sources():
+        chunks = chunk_markdown(src.body, src.source_id, src.title, src.lang)
+        for c in chunks:
+            c.source_url = src.source_url
+            c.label = src.label
+            c.doc_type = src.doc_type
+        all_chunks.extend(chunks)
 
     if not all_chunks:
         return 0
@@ -69,7 +103,15 @@ def build_index(force: bool = False) -> int:
         embeddings=embeddings,
         documents=texts,
         metadatas=[
-            {"source_id": c.source_id, "title": c.title, "lang": c.lang}
+            {
+                "source_id": c.source_id,
+                "title": c.title,
+                "lang": c.lang,
+                "source_url": c.source_url or "",
+                "label": c.label or "",
+                "doc_type": c.doc_type or "",
+                "section_title": c.section_title or "",
+            }
             for c in all_chunks
         ],
     )
