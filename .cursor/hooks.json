@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "hooks": {
+    "stop": [
+      {
+        "command": ".cursor/hooks/refresh-workspace-tree.sh"
+      }
+    ],
+    "sessionStart": [
+      {
+        "command": ".cursor/hooks/refresh-workspace-tree.sh"
+      }
+    ],
+    "afterFileEdit": [
+      {
+        "command": ".cursor/hooks/refresh-workspace-tree.sh"
+      }
+    ]
+  }
+}

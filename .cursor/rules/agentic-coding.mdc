@@ -1,0 +1,47 @@
+---
+description: Agentic Coding workflow for this project
+alwaysApply: true
+---
+
+# Agentic Coding Rule
+
+Use the workflow defined in `AGENTS.md`.
+
+**Skill 절차**: read `.cursor/skills/<skill-name>/SKILL.md` (index: `.cursor/skills/README.md`).  
+**Skill 결과**: update `docs/agentic/skill_outputs.md` and related agentic docs.
+
+Do not jump directly into implementation when the request is vague. First identify the correct Skill stage:
+
+1. service-goal-definition
+2. stakeholder-analysis
+3. requirements-decomposition
+4. mvp-scope-planning
+5. domain-modeling
+6. architecture-planning
+7. database-design
+8. task-breakdown
+9. implementation-prompt-writer
+10. frontend-implementation / backend-implementation
+11. test-strategy, code-review, security-privacy-review, deployment-operations, documentation-handoff
+
+Before implementation, consult and update:
+
+- `docs/agentic/context_packet.md`
+- `docs/agentic/DECISIONS.md`
+- `docs/agentic/ASSUMPTIONS.md`
+- `docs/agentic/OPEN_QUESTIONS.md`
+
+If the user asks for code, still verify goal, scope, constraints, affected files, done criteria, and verification method.
+
+For implementation tasks:
+- make small, reversible changes
+- do not expand scope
+- add tests or verification steps
+- avoid secrets in code
+- avoid logging sensitive data
+- update documentation when behavior changes
+
+When uncertain:
+- state the assumption
+- record it in `ASSUMPTIONS.md`
+- continue with the safest minimal implementation only if reasonable

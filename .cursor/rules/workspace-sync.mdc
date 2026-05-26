@@ -1,0 +1,30 @@
+---
+description: 우측 파일 탐색기·워크스페이스 트리 동기화
+alwaysApply: true
+---
+
+# 워크스페이스 트리 동기화
+
+## 배경
+
+`application` 브랜치 등으로 디스크와 Cursor 우측 **파일 탐색기**가 어긋날 수 있다. 에이전트는 디스크 기준으로 작업한다.
+
+## 매 턴(루프) 종료 시
+
+1. 파일·폴더를 **추가·삭제·이동**했다면, 턴 마무리 전에 **실제 경로**가 의도와 일치하는지 확인한다.
+2. 프로젝트 hook(`.cursor/hooks.json`)이 `stop` / `afterFileEdit` / `sessionStart`에서 **`refresh-workspace-tree.sh`** 를 실행해 다음을 갱신한다.
+   - `.cursor/workspace-tree.txt`
+   - `docs/PROJECT_TREE.md`
+3. 사용자에게 탐색기가 오래되면 안내한다.
+   - **Command Palette** → `Developer: Reload Window`
+   - 또는 워크스페이스 루트가 `/Users/sun_alwayshine/Desktop/code/Chatbot` 인지 확인
+
+## 탐색기가 여전히 옛 트리일 때
+
+- `main`에 있던 `src/`, `data/` 등이 보이면 → 브랜치 **`application`** 이 아니거나 창이 예전 스냅샷일 수 있음.
+- MCP **`move_agent_to_root`** 로 루트 `.../Chatbot` 재연결을 시도할 수 있다(사용자 요청 시).
+
+## SSOT
+
+- 기획·범위: `docs/agentic/context_packet.md`
+- **파일 목록 스냅샷**: `docs/PROJECT_TREE.md` (hook 자동 갱신)
