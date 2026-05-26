@@ -85,6 +85,15 @@
 
 ---
 
+## 2026-05-26 - 초기 구현 스택 (스파이크 브랜치)
+
+- **Decision**: `feat/initial-ui-chatbot`에서 **Expo** UI + **FastAPI** + **Chroma RAG** + **Hugging Face 공개 LLM**(`Qwen2.5-0.5B-Instruct` 기본). 파인튜닝은 보류.
+- **Reason**: 사용자 승인(Expo, RAG+HF). 빠른 E2E 검증.
+- **Alternatives considered**: FAQ-only, OpenAI API, Vite 웹만.
+- **Impact**: `backend/`, `mobile/` 추가; main 기획 Must 전체와 분리.
+
+---
+
 ## 2026-05-26 - Skill 파일 위치
 
 - **Decision**: Skill **절차**는 **`.cursor/skills/<skill-name>/SKILL.md`**; Skill **산출물**은 **`docs/agentic/skill_outputs.md`**.

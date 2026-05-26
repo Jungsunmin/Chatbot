@@ -1,8 +1,8 @@
 # context_packet.md
 
 **최종 갱신**: 2026-05-26  
-**브랜치**: `application`  
-**다음 Skill**: `domain-modeling` (MVP 범위 확정 후)
+**브랜치**: `feat/initial-ui-chatbot` (초기 UI·RAG 챗 스파이크)  
+**다음 Skill**: `domain-modeling` · `architecture-planning` (스파이크 검증 후)
 
 ---
 
@@ -57,14 +57,15 @@
 
 ## Current Architecture Summary
 
-**미정** — `domain-modeling` · `architecture-planning` 전.  
-(예상: 모바일 앱 ↔ REST API ↔ 콘텐츠 DB + Push + (선택) RAG FAQ)
+**프로토타입 (구현 중)**  
+`mobile/` Expo → `POST /chat` → `backend/` FastAPI → Chroma RAG → HF `transformers` (Qwen2.5-0.5B 기본).  
+소스 문서: `backend/data/sources/*.md`. 상세: [`docs/RAG_PROTOTYPE.md`](../RAG_PROTOTYPE.md).
 
 ## Current Next Task
 
-1. **OPEN_QUESTIONS** 중 P0 항목 사용자 확인  
-2. Skill **`domain-modeling`** → **`architecture-planning`**  
-3. `data/status.md` SSOT 재도입 여부 결정(선택)
+1. 로컬에서 백엔드·Expo 연동 테스트  
+2. KU 가이드북 실제 섹션을 `data/sources`에 확장  
+3. Skill **`domain-modeling`** → 전체 MVP 아키텍처 정리
 
 ## References
 

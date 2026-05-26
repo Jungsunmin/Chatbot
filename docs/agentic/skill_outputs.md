@@ -254,7 +254,15 @@ TBD
 
 ## implementation
 
-TBD
+### feat/initial-ui-chatbot (스파이크)
+
+| 구성 | 경로 |
+|------|------|
+| API + RAG + HF LLM | `backend/` |
+| Expo UI (홈·언어·온보딩 칩·챗) | `mobile/` |
+| 실행 문서 | [`README.md`](../../README.md), [`docs/RAG_PROTOTYPE.md`](../RAG_PROTOTYPE.md) |
+
+**범위**: 전체 MVP Must 아님 — FAQ RAG 챗 + 단순 UI만. Push·지도·가이드북 전체 이식은 추후.
 
 ## test-strategy
 

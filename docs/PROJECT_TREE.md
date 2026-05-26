@@ -1,6 +1,6 @@
 # Workspace tree snapshot
-# updated_utc: 2026-05-26T00:58:23Z
-# branch: main
+# updated_utc: 2026-05-26T01:09:31Z
+# branch: feat/initial-ui-chatbot
 
 .
 ./.cursor
@@ -49,11 +49,46 @@
 ./.cursor/skills/test-strategy
 ./.cursor/skills/test-strategy/SKILL.md
 ./.cursor/workspace-tree.txt
+./.gitignore
+./README.md
+./backend
+./backend/.env.example
+./backend/app
+./backend/app/main.py
+./backend/data
+./backend/data/sources
+./backend/data/sources/housing_en.md
+./backend/data/sources/registration_en.md
+./backend/data/sources/visa_en.md
+./backend/data/sources/visa_zh.md
+./backend/rag
+./backend/rag/__init__.py
+./backend/rag/chunking.py
+./backend/rag/config.py
+./backend/rag/generator.py
+./backend/rag/indexer.py
+./backend/rag/retriever.py
+./backend/requirements.txt
+./backend/scripts
+./backend/scripts/build_index.py
 ./docs
 ./docs/PROJECT_TREE.md
+./docs/RAG_PROTOTYPE.md
 ./docs/agentic
 ./docs/agentic/ASSUMPTIONS.md
 ./docs/agentic/DECISIONS.md
 ./docs/agentic/OPEN_QUESTIONS.md
 ./docs/agentic/context_packet.md
 ./docs/agentic/skill_outputs.md
+./mobile
+./mobile/.env.example
+./mobile/App.tsx
+./mobile/app.json
+./mobile/babel.config.js
+./mobile/package.json
+./mobile/src
+./mobile/src/api
+./mobile/src/api/client.ts
+./mobile/src/i18n
+./mobile/src/i18n/strings.ts
+./mobile/tsconfig.json
