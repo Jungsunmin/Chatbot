@@ -12,8 +12,8 @@ description: Define service problem, target users, value, success criteria, non-
 
 ## Prerequisites
 
-- [`docs/agentic/context_packet.md`](../../../docs/agentic/context_packet.md)
-- [`.cursor/skills/_shared/skill-contract.md`](../_shared/skill-contract.md)
+- [`docs/agentic/context_packet.md`](../../docs/agentic/context_packet.md)
+- [`.cursor/skills/skill-contract.md`](skill-contract.md)
 
 ## Procedure
 

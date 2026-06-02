@@ -2,7 +2,7 @@
 
 ## 시작 전
 
-- [`docs/agentic/context_packet.md`](../../../docs/agentic/context_packet.md) 읽기
+- [`docs/agentic/context_packet.md`](../../docs/agentic/context_packet.md) 읽기
 - 이전 단계 Skill 산출물이 `docs/agentic/skill_outputs.md`에 있는지 확인
 - 확정되지 않은 내용은 **추측하지 말고** `ASSUMPTIONS.md` / `OPEN_QUESTIONS.md`에 기록
 

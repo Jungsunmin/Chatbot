@@ -103,12 +103,12 @@ Record unresolved questions.
 
 Use this sequence unless the user explicitly asks for a focused implementation task.
 
-**Skill 정의(절차·출력 템플릿)**: [`.cursor/skills/README.md`](.cursor/skills/README.md) — 각 Skill은 `.cursor/skills/<skill-name>/SKILL.md`.
+**Skill 정의(절차·출력 템플릿)**: [`.cursor/skills/README.md`](.cursor/skills/README.md) — 각 Skill은 `.cursor/skills/<skill-name>.md`.
 
 **Skill 산출물(프로젝트 결과)**: `docs/agentic/skill_outputs.md` 및 `context_packet.md` 등.
 
-| # | Skill folder | 산출물 섹션 (`skill_outputs.md`) |
-|---|----------------|----------------------------------|
+| # | Skill file | 산출물 섹션 (`skill_outputs.md`) |
+|---|------------|----------------------------------|
 | 1 | `service-goal-definition` | `service_goal_definition` |
 | 2 | `stakeholder-analysis` | `stakeholder-analysis` |
 | 3 | `requirements-decomposition` | `requirements-decomposition` |
@@ -121,7 +121,7 @@ Use this sequence unless the user explicitly asks for a focused implementation t
 | 10 | `backend-implementation`, `frontend-implementation` | implementation |
 | 11 | `test-strategy`, `code-review`, `security-privacy-review`, `deployment-operations`, `documentation-handoff` | 각 동명 섹션 |
 
-공통 계약: [`.cursor/skills/_shared/skill-contract.md`](.cursor/skills/_shared/skill-contract.md)
+공통 계약: [`.cursor/skills/skill-contract.md`](.cursor/skills/skill-contract.md)
 
 Implementation order: database schema → backend API → frontend UI → integration → edge cases → tests.
 

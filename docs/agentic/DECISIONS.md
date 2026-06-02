@@ -108,7 +108,16 @@
 - **Decision**: Skill **절차**는 **`.cursor/skills/<skill-name>/SKILL.md`**; Skill **산출물**은 **`docs/agentic/skill_outputs.md`**.
 - **Reason**: Cursor 프로젝트 Skill 규칙·절차/결과 분리.
 - **Alternatives considered**: Skill 본문만 `skill_outputs`, 절차는 `AGENTS.md` 단일 파일.
-- **Impact**: 에이전트는 Skill 실행 시 `.cursor/skills/` 먼저 읽고, 완료 후 `docs/agentic/` 갱신.
+- **Impact**: 에이전트는 Skill 실행 시 `.cursor/skills/<name>.md` 를 읽고, 완료 후 `docs/agentic/` 갱신.
+
+---
+
+## 2026-06-02 - Skill 파일 평탄화
+
+- **Decision**: Skill **절차**는 **`.cursor/skills/<skill-name>.md`** (폴더·`SKILL.md` 제거). 공통 계약은 **`skill-contract.md`** (루트).
+- **Reason**: 탐색·경로 단순화.
+- **Alternatives considered**: `*/SKILL.md` 폴더 구조 유지.
+- **Impact**: AGENTS·rules·README 링크 갱신.
 
 ---
 

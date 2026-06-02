@@ -2,7 +2,7 @@
 
 에이전트 Skill **산출물(결과)** 저장소. 최종 갱신: 2026-05-26
 
-> Skill **실행 절차**는 [`.cursor/skills/README.md`](../../.cursor/skills/README.md) 의 `<skill-name>/SKILL.md` 를 따른다.
+> Skill **실행 절차**는 [`.cursor/skills/README.md`](../../.cursor/skills/README.md) 의 `<skill-name>.md` 를 따른다.
 
 ---
 

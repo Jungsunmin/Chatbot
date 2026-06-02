@@ -5,7 +5,7 @@
 | 경로 | 역할 |
 |------|------|
 | [`AGENTS.md`](AGENTS.md) | 에이전트 워크플로·승인 규칙 |
-| [`skills/`](skills/README.md) | **Skill 절차** (`<name>/SKILL.md`) |
+| [`skills/`](skills/README.md) | **Skill 절차** (`<name>.md`) |
 | [`rules/`](rules/) | Cursor rules (agentic-coding, workspace-sync) |
 | [`hooks/`](hooks.json) | 파일 트리 스냅샷 갱신 등 |
 

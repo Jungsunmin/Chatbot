@@ -1,38 +1,38 @@
 # Project Skills (Agentic Coding)
 
-건국대 유학생 앱(`application` 브랜치) 기획·구현 워크플로용 **프로젝트 Skill** 모음.
+건국대(KU) 외국인 유학생 앱 — **`feat/initial-ui-chatbot`** Skill 모음.
 
-## 사용 전
+## 사용 전 (필수)
 
 1. [`.cursor/AGENTS.md`](../AGENTS.md)
-2. [`docs/agentic/context_packet.md`](../../docs/agentic/context_packet.md)
+2. [`.cursor/skills/skill-contract.md`](skill-contract.md) — 시작/완료 체크리스트
+3. [`docs/agentic/context_packet.md`](../../docs/agentic/context_packet.md)
 
 ## Skill 순서
 
-| # | Skill | 폴더 |
-|---|--------|------|
-| 1 | Service Goal | [`service-goal-definition/`](service-goal-definition/SKILL.md) |
-| 2 | Stakeholder | [`stakeholder-analysis/`](stakeholder-analysis/SKILL.md) |
-| 3 | Requirements | [`requirements-decomposition/`](requirements-decomposition/SKILL.md) |
-| 4 | MVP Scope | [`mvp-scope-planning/`](mvp-scope-planning/SKILL.md) |
-| 5 | Domain Model | [`domain-modeling/`](domain-modeling/SKILL.md) |
-| 6 | Architecture | [`architecture-planning/`](architecture-planning/SKILL.md) |
-| 7 | Database Design | [`database-design/`](database-design/SKILL.md) |
-| 8 | Task Breakdown | [`task-breakdown/`](task-breakdown/SKILL.md) |
-| 9 | Impl. Prompt | [`implementation-prompt-writer/`](implementation-prompt-writer/SKILL.md) |
-| 10a | Backend Impl. | [`backend-implementation/`](backend-implementation/SKILL.md) |
-| 10b | Frontend Impl. | [`frontend-implementation/`](frontend-implementation/SKILL.md) |
-| 11a | Test Strategy | [`test-strategy/`](test-strategy/SKILL.md) |
-| 11b | Code Review | [`code-review/`](code-review/SKILL.md) |
-| 11c | Security/Privacy | [`security-privacy-review/`](security-privacy-review/SKILL.md) |
-| 11d | Deploy/Ops | [`deployment-operations/`](deployment-operations/SKILL.md) |
-| 11e | Doc Handoff | [`documentation-handoff/`](documentation-handoff/SKILL.md) |
+| # | Skill | 파일 | 선행 `skill_outputs` 섹션 |
+|---|--------|------|---------------------------|
+| 1 | Service Goal | [`service-goal-definition.md`](service-goal-definition.md) | — |
+| 2 | Stakeholder | [`stakeholder-analysis.md`](stakeholder-analysis.md) | `service_goal_definition` |
+| 3 | Requirements | [`requirements-decomposition.md`](requirements-decomposition.md) | `stakeholder-analysis` |
+| 4 | MVP Scope | [`mvp-scope-planning.md`](mvp-scope-planning.md) | `requirements-decomposition` |
+| 5 | Domain Model | [`domain-modeling.md`](domain-modeling.md) | `mvp-scope-planning` |
+| 6 | Architecture | [`architecture-planning.md`](architecture-planning.md) | `domain-modeling` |
+| 7 | Database Design | [`database-design.md`](database-design.md) | `architecture-planning` |
+| 8 | Task Breakdown | [`task-breakdown.md`](task-breakdown.md) | 4, 6, 7 |
+| 9 | Impl. Prompt | [`implementation-prompt-writer.md`](implementation-prompt-writer.md) | `task-breakdown` (해당 행) |
+| 10a | Backend Impl. | [`backend-implementation.md`](backend-implementation.md) | 승인된 prompt |
+| 10b | Frontend Impl. | [`frontend-implementation.md`](frontend-implementation.md) | 승인된 prompt |
+| 11a | Test Strategy | [`test-strategy.md`](test-strategy.md) | 해당 기능 완료 후 |
+| 11b | Code Review | [`code-review.md`](code-review.md) | 구현 task 완료 후 |
+| 11c | Security/Privacy | [`security-privacy-review.md`](security-privacy-review.md) | auth/AI/Push 변경 시 |
+| 11d | Deploy/Ops | [`deployment-operations.md`](deployment-operations.md) | 릴리스 전 |
+| 11e | Doc Handoff | [`documentation-handoff.md`](documentation-handoff.md) | 마일스톤 종료 |
 
-## 산출물 저장
+## 산출물
 
-- **Skill 본문 출력**: [`docs/agentic/skill_outputs.md`](../../docs/agentic/skill_outputs.md) 해당 섹션
-- **요약·다음 작업**: [`docs/agentic/context_packet.md`](../../docs/agentic/context_packet.md)
-- **확정 결정 / 가정 / 질문**: `DECISIONS.md` / `ASSUMPTIONS.md` / `OPEN_QUESTIONS.md`
+- **절차**: `.cursor/skills/<skill-name>.md`
+- **결과**: `docs/agentic/skill_outputs.md`, `context_packet.md`, DECISIONS, ASSUMPTIONS, OPEN_QUESTIONS
 
 ## Cursor에서 실행 예
 
