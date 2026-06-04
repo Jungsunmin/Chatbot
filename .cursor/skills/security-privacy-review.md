@@ -21,4 +21,4 @@ description: Review PII, auth, FAQ AI, community features, logs, and retention f
 
 ## Output
 
-`skill_outputs.md` → `## security-privacy-review` + `OPEN_QUESTIONS` 보안 항목 갱신
+`docs/agentic/skill-outputs/security-privacy-review.md` + `OPEN_QUESTIONS` 보안 항목 갱신

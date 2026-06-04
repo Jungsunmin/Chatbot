@@ -12,7 +12,7 @@ description: Map stakeholders, goals, pain points, responsibilities, and risks i
 
 ## Prerequisites
 
-- `service-goal-definition` 완료 (`skill_outputs.md`)
+- `service-goal-definition.md` 완료 ([`skill-outputs/`](../../docs/agentic/skill-outputs/))
 
 ## Procedure
 
@@ -22,7 +22,7 @@ description: Map stakeholders, goals, pain points, responsibilities, and risks i
 
 ## Output template
 
-`docs/agentic/skill_outputs.md` → `## stakeholder-analysis`
+`docs/agentic/skill-outputs/stakeholder-analysis.md`
 
 ```md
 # Stakeholder Analysis

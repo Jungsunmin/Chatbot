@@ -13,7 +13,7 @@ description: Write a single-task implementation prompt with goal, context, files
 ## Prerequisites
 
 - 해당 task ID의 Done Criteria
-- `context_packet`, 관련 `skill_outputs` 섹션
+- `context_packet`, 관련 `skill-outputs/*.md`
 
 ## Procedure
 
@@ -26,7 +26,7 @@ description: Write a single-task implementation prompt with goal, context, files
 
 ## Output template
 
-`docs/agentic/skill_outputs.md` → `## implementation-prompt-writer` (또는 작업별 별도 md 링크)
+`docs/agentic/skill-outputs/implementation-prompt-writer.md` (또는 작업별 별도 md 링크)
 
 ```md
 # Implementation Prompt

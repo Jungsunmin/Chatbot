@@ -24,7 +24,7 @@ description: Define test levels, cases for i18n, push, FAQ sources, and MVP acce
 
 ## Output template
 
-`docs/agentic/skill_outputs.md` → `## test-strategy`
+`docs/agentic/skill-outputs/test-strategy.md`
 
 ```md
 # Test Strategy

@@ -25,7 +25,7 @@ description: Plan modules, data flow, integrations, API boundaries, failure mode
 
 ## Output template
 
-`docs/agentic/skill_outputs.md` → `## architecture-planning`
+`docs/agentic/skill-outputs/architecture-planning.md`
 
 ```md
 # Architecture Plan
@@ -37,6 +37,9 @@ description: Plan modules, data flow, integrations, API boundaries, failure mode
 ## Trade-offs
 ```
 
-## Project hint
+## 프로젝트 힌트 (KU RAG 챗봇)
 
-iOS+Android, EN/ZH/JA, 오프라인 가이드북 캐시, FAQ는 가이드북·FAQ 근거 우선.
+- English-first: `normalized_query_en` + `expanded_terms` → **한국어 md** 청크 검색; `response_lang`(ko/en/zh/ja)로 답변.
+- `/chat` 실시간 크롤 없음; human-curated Korean `.md`가 SSOT.
+- 모듈: query 파이프라인, retrieval(벡터 + 휴리스틱 rerank), generation(로컬 HF), Expo 클라이언트.
+- MVP: SQL·인증 없음; Chroma + in-memory pending session.

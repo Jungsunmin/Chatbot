@@ -1,42 +1,60 @@
 # OPEN_QUESTIONS.md
 
-미해결 질문. 최종 갱신: 2026-05-26
+미해결 질문. 최종 갱신: 2026-06-02
 
 ---
 
 ## P0 — domain-modeling 전에 필요
 
-### 가이드북 MVP 섹션 최종 목록
+### 가이드북 MVP 섹션 (Must vs Should)
 
-- **Question**: Must에 넣을 **가이드북 섹션** 최종 목록은? (초안 6개: Welcome, Visa, Enrollment, Housing, Calendar, Emergency)
-- **Owner**: 기획·개발 팀
-- **Needed by**: `domain-modeling`, 번역 견적
-- **Impact if unresolved**: 범위·일정 불명확
+- **Must (Korean curated `.md`)**: Visa/Immigration, Enrollment, Housing, Course/Academic — 각 `doc_id` + `preserve_terms`
+- **Should**: Welcome, Emergency
+- **Could**: Academic Calendar 전체
+- **Owner**: 기획·개발 · **근거**: [domain-modeling.md](./skill-outputs/domain-modeling.md), [mvp-scope-planning.md](./skill-outputs/mvp-scope-planning.md)
 
-### 1차 사용자·상태 전환 규칙
+### ~~MoSCoW vs Domain Model — 소스 언어~~ → **해소 (Architecture AR-1)**
 
-- **Question**: “입학 전/재학/생활” **자동 전환**(일정 기반) vs **사용자 수동**만?
-- **Owner**: 기획
-- **Needed by**: FR-2 상세 설계
-- **Impact if unresolved**: 대시보드 로직 중복·혼란
+- **결정**: MVP 인덱스 = **Korean curated md only**; 다국어 답변 = answer-time + `preserve_terms`.
+- **근거**: [architecture-planning.md](./skill-outputs/architecture-planning.md) AR-1, [DECISIONS.md](./DECISIONS.md)
 
-### 인증·계정
+### ~~대시보드 상태·MVP 인증~~ → **챗봇 MVP Non-Scope (보류)**
 
-- **Question**: MVP 로그인 — **게스트/이메일** / **학번+비밀번호(포털)** / **소셜** 중 무엇?
-- **Owner**: 기획 + (추후) 학교 IT
-- **Needed by**: architecture-planning
-- **Impact if unresolved**: Push·알림·커뮤니티 설계 불가
+- 입학 전/재학/생활 홈, 로그인/SSO — **풀앱 2차**. 챗봇 MVP는 **무로그인 Must** ([mvp-scope-planning](./skill-outputs/mvp-scope-planning.md)).
 
 ---
 
 ## P1 — architecture·구현 전
 
-### 한국어 UI
+### ~~4언어 우선순위·폴백~~ → **부분 해소 (Skill 5 보강)**
 
-- **Question**: UI에 **한국어** 포함 여부? (현재 결정: EN/ZH/JA만)
-- **Owner**: 기획
-- **Needed by**: i18n 설계
-- **Impact if unresolved**: 번역 비용·QA 범위
+- **확정**: **English-first** — `default_response_language=en`; `response_lang` = UI > detected > en; **4언어 응답** 지원.
+- **미정**: dual en md vs answer-time only — 위 **MoSCoW 정합** 항목 참고.
+- **근거**: [domain-modeling.md](./skill-outputs/domain-modeling.md) LanguagePolicy
+
+### ~~입력 언어 감지 confidence~~ → **해소 (Architecture AR-5)**
+
+- **결정**: `langdetect`(동급); **confidence ≥ 0.70**일 때만 detected를 `response_lang` 후보로; UI `lang` 항상 우선.
+- **근거**: [architecture-planning.md](./skill-outputs/architecture-planning.md)
+
+### ~~Reranker 방식~~ → **해소 (Architecture AR-4)**
+
+- **결정**: MVP **heuristic rerank** (distance + `expanded_terms` 매칭 + `document_list` 시 제출서류 boost). Cross-encoder = 1.x.
+- **근거**: [architecture-planning.md](./skill-outputs/architecture-planning.md)
+
+### `normalized_query_en` 구현 방식
+
+- **Question**: 비영어 입력 시 검색 전용 en 변환 — **동일 1.5B 1-shot** vs **소형 번역 API** vs **multilingual embed only**(필드는 query 조합으로 대체)?
+- **Owner**: 개발
+- **Needed by**: `backend-implementation` (query_normalizer)
+- **Impact**: 검색 recall vs 지연
+
+### 소스·갱신 책임
+
+- **Question**: `data/sources` **작성·갱신·reindex** 책임 — 개발 팀 단독 vs 국제처 제공·검수?
+- **Owner**: 기획 + (추후) 국제처
+- **Needed by**: `requirements-decomposition`, 운영 runbook
+- **Impact if unresolved**: 소스 품질·공식성 리스크
 
 ### FAQ AI 스택
 

@@ -12,12 +12,12 @@
 ## Skill vs 산출물
 
 - **How (절차)**: `.cursor/skills/`
-- **What (결과)**: `docs/agentic/` — especially `skill_outputs.md`, `context_packet.md`
+- **What (결과)**: `docs/agentic/` — especially [`skill-outputs/`](../docs/agentic/skill-outputs/), `context_packet.md`
 
 ## 사용 예
 
 ```
-domain-modeling 스킬로 skill_outputs 갱신해줘
+domain-modeling 스킬로 skill-outputs/domain-modeling.md 갱신해줘
 ```
 
 ## Agentic 문서

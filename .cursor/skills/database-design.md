@@ -25,7 +25,7 @@ description: Design tables, relationships, indexes, constraints, migration plan,
 
 ## Output template
 
-`docs/agentic/skill_outputs.md` → `## database-design`
+`docs/agentic/skill-outputs/database-design.md`
 
 ```md
 # Database Design

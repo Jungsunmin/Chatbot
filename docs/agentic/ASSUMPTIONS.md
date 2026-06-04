@@ -1,6 +1,6 @@
 # ASSUMPTIONS.md
 
-아직 검증되지 않은 가정. 최종 갱신: 2026-05-26
+아직 검증되지 않은 가정. 최종 갱신: 2026-06-02
 
 ---
 
@@ -76,12 +76,21 @@
 
 ---
 
-## 한국어 UI 미포함
+## English-first + Korean curated source (Architecture AR-1)
 
-- **Assumption**: 사용자 명시 3언어는 **EN/ZH/JA**; 한국어 UI는 **요구 없음**(OPEN에서 재확인).
-- **Why it matters**: 번역 범위.
-- **Risk if wrong**: 한국어 유학생(귀화 전) 이탈.
-- **How to verify**: 타깃 사용자 인터뷰 1회.
+- **Assumption**: MVP 인덱스 = **Korean human-curated `.md` only**; **answer-time** 다국어 답변. 검색 = `langdetect` + `normalized_query_en` + `expanded_terms` + multilingual embed + **heuristic rerank**.
+- **Why it matters**: 콘텐츠 1벌·공식 KO 웹 정합.
+- **Risk if wrong**: 영어 질의→KO 청크 recall 낮음 → normalizer·expanded_terms 튜닝.
+- **How to verify**: [architecture-planning.md](./skill-outputs/architecture-planning.md) 검증 체크리스트.
+
+---
+
+## 다국어 응답 (ko / en / zh / ja)
+
+- **Assumption**: **UI·`response_lang`** 4언어. **인덱스 원문**은 한국어 중심. 중요 행정어는 **English (한국어)** 병기 (`preserve_terms`).
+- **Why it matters**: i18n·faithfulness·유학생 신뢰.
+- **Risk if wrong**: 용어 오역·법적 오안내.
+- **How to verify**: immigration/medical 샘플 답변 QA.
 
 ---
 

@@ -25,7 +25,7 @@ description: MoSCoW MVP scope (Must/Should/Could/Non-Scope) and release criteria
 
 ## Output template
 
-`docs/agentic/skill_outputs.md` → `## mvp-scope-planning`
+`docs/agentic/skill-outputs/mvp-scope-planning.md`
 
 ```md
 # MVP Scope

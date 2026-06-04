@@ -25,7 +25,7 @@ description: Decompose functional/non-functional requirements, user scenarios, e
 
 ## Output template
 
-`docs/agentic/skill_outputs.md` → `## requirements-decomposition`
+`docs/agentic/skill-outputs/requirements-decomposition.md`
 
 ```md
 # Requirements Decomposition

@@ -8,7 +8,7 @@ alwaysApply: true
 Use the workflow defined in `AGENTS.md`.
 
 **Skill 절차**: read `.cursor/skills/<skill-name>.md` (index: `.cursor/skills/README.md`).  
-**Skill 결과**: update `docs/agentic/skill_outputs.md` and related agentic docs.
+**Skill 결과**: update `docs/agentic/skill-outputs/<skill-name>.md` and related agentic docs.
 
 Do not jump directly into implementation when the request is vague. First identify the correct Skill stage:
 

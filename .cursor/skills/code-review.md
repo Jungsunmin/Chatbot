@@ -20,4 +20,4 @@ description: Review changes for scope, correctness, i18n, error handling, and al
 
 ## Output
 
-`skill_outputs.md` → `## code-review`에 요약·블로커·권장 수정
+`docs/agentic/skill-outputs/code-review.md`에 요약·블로커·권장 수정

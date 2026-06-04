@@ -1,114 +1,95 @@
 # DECISIONS.md
 
-확정된 결정만 기록. 최종 갱신: 2026-05-26
+확정된 결정만 기록. 최종 갱신: 2026-06-02
 
 ---
 
-## 2026-05-26 - 대상 기관·사용자
+## 2026-06-02 - Agentic Skills 7–11 완료 (구현 전 기획 마감)
 
-- **Decision**: **건국대학교(KU) 외국인 유학생** 전용 앱. 학부·대학원·어학당·교환 포함.
-- **Reason**: 사용자 기획 및 벤치마크(건국대 앱·가이드북) 명시.
-- **Alternatives considered**: 타교 공통 앱, 교환학생만 대상.
-- **Impact**: 콘텐츠·일정·지도·브랜딩 모두 KU 기준.
-
----
-
-## 2026-05-26 - 플랫폼
-
-- **Decision**: **iOS + Android** 동시 지원.
-- **Reason**: 유학생 단말기 분산, Push·앱스토어 배포 필요.
-- **Alternatives considered**: PWA만, 단일 OS 우선.
-- **Impact**: 크로스플랫폼(Flutter/React Native 등) 또는 이중 네이티브 검토.
+- **Decision**: `database-design`~(no SQL), `task-breakdown` T01–T20, `implementation-prompt-writer` 샘플, backend/frontend 구현 가이드, `test-strategy`, `code-review`, `security-privacy-review`, `deployment-operations`, `documentation-handoff` 작성 완료.
+- **Reason**: 사용자 요청 — architecture 이후 Skill 일괄 산출.
+- **Alternatives considered**: 구현과 병행하며 Skill 생략.
+- **Impact**: [`skill-outputs/README.md`](./skill-outputs/README.md); 다음은 task별 Implementation Prompt 승인 + 코드.
 
 ---
 
-## 2026-05-26 - UI 언어
+## 2026-06-02 - Architecture Plan (MVP RAG pipeline)
 
-- **Decision**: 앱 UI·가이드북 MVP 번역 언어 **영어·중국어·일본어**.
-- **Reason**: 핵심 기능 요구사항 #1.
-- **Alternatives considered**: 한국어 포함 4언어, 영어만 MVP.
-- **Impact**: i18n 키·번역 파이프라인 3벌 관리.
-
----
-
-## 2026-05-26 - 홈 경험(대시보드)
-
-- **Decision**: **온보딩 상태별 홈 분기** — 입학 전 / 재학 / 생활.
-- **Reason**: 핵심 기능 #2, 단계별 “다음 할 일” 제공.
-- **Alternatives considered**: 단일 홈, 역할만 분기(학생/교직원).
-- **Impact**: 사용자 프로필·상태 필드, 홈 카드 구성 테이블 필요.
+- **Decision**: **3-tier** Expo → FastAPI → Query pipeline + Retrieval + Generation. **인덱스 = Korean curated md only** (AR-1, Domain v2). 검색: `langdetect` + `normalized_query_en` + `expanded_terms` → multilingual embed → Chroma → **heuristic rerank** → SelectedContext(≤4) → LLM. **무로그인**; **SQL 없음**; PendingSession in-memory TTL.
+- **Reason**: Skill 6 `architecture-planning`; OPEN_QUESTIONS 해소(소스 전략, rerank, detect threshold).
+- **Alternatives considered**: ko+en dual index; cross-encoder rerank; external LLM API.
+- **Impact**: [`skill-outputs/architecture-planning.md`](./skill-outputs/architecture-planning.md); 구현 시 `backend/rag/{query,retrieval,generation}/` 분리 권장.
 
 ---
 
-## 2026-05-26 - 콘텐츠 원천
+## 2026-06-02 - MVP 소스 전략 정합 (Architecture가 MoSCoW 보완)
 
-- **Decision**: **KU 가이드북 섹션**을 앱 구조로 이식하고 **3개 언어** 제공.
-- **Reason**: 핵심 기능 #3, 공식 안내 신뢰도.
-- **Alternatives considered**: 웹뷰만, 신규 FAQ만 작성.
-- **Impact**: 섹션 매핑·버전·갱신 프로세스 정의 필요.
-
----
-
-## 2026-05-26 - 국제처 협업 시점
-
-- **Decision**: **MVP 개발 우선**; 국제처 **공식 검수·협업은 추후** 검토.
-- **Reason**: 사용자 명시(개발 선행).
-- **Alternatives considered**: 협업 후 개발 시작.
-- **Impact**: 초기 콘텐츠는 팀 수집·비공식; 공식 배포 전 검수 게이트 필요.
+- **Decision**: MVP 인덱스는 **한국어 human-curated `.md`만**. 영어/중/일 답변은 **answer-time LLM** + `preserve_terms`. Skill 4「ko+en dual md Must」는 **콘텐츠 작성 부담 절감**을 위해 Architecture에서 **Korean-only index**로 대체.
+- **Reason**: Domain v2 + 운영 현실(공식 페이지가 한국어).
+- **Alternatives considered**: Must마다 en md 병행 유지.
+- **Impact**: `docs/RAG_SOURCES.md`·콘텐츠 runbook; 선택 en md는 Should.
 
 ---
 
-## 2026-05-26 - FAQ·AI 정책(방향)
+## 2026-06-02 - Domain Model 보강 (English-first · Korean curated source)
 
-- **Decision**: FAQ **키워드 검색** + AI는 **가이드북·FAQ 근거·출처 표시**; 불확실 시 국제처 문의 유도.
-- **Reason**: 행정 오안내 리스크 완화.
-- **Alternatives considered**: 무제한 생성형 챗, 챗봇 MVP 제외.
-- **Impact**: RAG 또는 FAQ-only 구현; MVP에서 무출처 답변 금지.
-
----
-
-## 2026-05-26 - MVP vs 전체 기능
-
-- **Decision**: **Must**: 다국어, 3상태 대시보드, 가이드북 핵심 섹션, Push(수강·비자), FAQ+제한 AI, 알림 센터. **Should**: 지도·수강 가이드. **Could**: 커뮤니티·룸메이트. **Non-Scope MVP**: 커뮤니티 오픈(모더레이션 없음), 포털 대체.
-- **Reason**: `mvp-scope-planning` 범위 통제.
-- **Alternatives considered**: 사용자 제시 7개 기능 전부 Must.
-- **Impact**: 1.0 일정·인력 현실화; 1.x/2.0 로드맵 분리.
+- **Decision**: **LanguagePolicy** — `default_response_language=en`, `search_normalization_language=en`, `response_lang` = UI 선택 > detected > en. **RAG SSOT** = 공식 한국어 웹을 사람이 정리한 **한국어 `.md`** (`translation_strategy=answer_time_translation`). 답변 시 **preserve_terms** — English (한국어) 병기. 검색 파이프라인: Query → vector top-k → **RerankResult** → **SelectedContext** → LLM. **SensitiveTopic** + **SafetyNotice** / **SuggestedContact** 규칙 추가.
+- **Reason**: Skill 5 보강 — 외국인 유학생 English-first, 공식 문서는 한국어 원천.
+- **Alternatives considered**: MVP Must **ko+en dual md files** ([mvp-scope-planning](./skill-outputs/mvp-scope-planning.md)); 실시간 크롤.
+- **Impact**: [`skill-outputs/domain-modeling.md`](./skill-outputs/domain-modeling.md) v2; Skill 4 MoSCoW **소스 전략**은 architecture/MVP 재정합 권장.
 
 ---
 
-## 2026-05-26 - Agentic 문서 SSOT
+## 2026-06-02 - Domain Model (챗봇 · 초안)
 
-- **Decision**: 기획·범위 SSOT는 **`docs/agentic/`** (`context_packet.md` + `skill_outputs.md`). 레거시 RAG `data/status.md`는 `application` 브랜치에서 제거됨.
-- **Reason**: 브랜치 `application`에서 신규 앱 기획만 유지.
-- **Alternatives considered**: `data/status.md` 복원.
-- **Impact**: Cursor `chatbot-status.mdc`와 불일치 — 규칙·status 파일 추후 정리 필요.
-
----
-
-## 2026-05-26 - Source-only 답변 + 확인 턴 (파인튜닝 보류)
-
-- **Decision**: 답변은 **가이드북 청크 인용만** (`citation_first`). 검색 `low`/`none` → **모른다**. `medium` → **관련 있나요?** 확인 후 yes=인용, no=모른다. **LoRA/파인튜닝은 하지 않음.**
-- **Reason**: 사용자 요구(출처 밖 답 금지·확인 후 응답). 소형 LLM 환각 위험.
-- **Alternatives considered**: 프롬프트만 LLM, 파인튜닝 우선.
-- **Impact**: [`backend/rag/retriever.py`](../backend/rag/retriever.py) 밴드, [`pending_sessions.py`](../backend/rag/pending_sessions.py), API `status`·`confirm` 필드.
+- **Decision**: 핵심 개념 **SourceDocument → Chunk → Query/Retrieval → ChatResponse**. 무로그인, confirm, unknown, citation 유지.
+- **Reason**: Skill 5 초안.
+- **Impact**: superseded by English-first 보강 항목(위).
 
 ---
 
-## 2026-05-26 - 초기 구현 스택 (스파이크 브랜치)
+## 2026-06-02 - MVP Scope 확정 (MoSCoW · 챗봇 1.0)
 
-- **Decision**: `feat/initial-ui-chatbot`에서 **Expo** UI + **FastAPI** + **Chroma RAG** + **Hugging Face 공개 LLM**(`Qwen2.5-0.5B-Instruct` 기본). 파인튜닝은 보류.
-- **Reason**: 사용자 승인(Expo, RAG+HF). 빠른 E2E 검증.
-- **Alternatives considered**: FAQ-only, OpenAI API, Vite 웹만.
-- **Impact**: `backend/`, `mobile/` 추가; main 기획 Must 전체와 분리.
+- **Decision**: MVP 1.0 **Must** = RAG 챗 전 경로(FR-1~3, 5) + 4언어 UI/API + **소스 ko+en** 4섹션(Visa, Enrollment, Housing, Course). **zh/ja 소스** = Should. 풀앱·Push·지도·커뮤니티·SSO = Non-Scope/Could.
+- **Reason**: Skill 4 `mvp-scope-planning` — 일정·번역 부담과 Skill 3 FR 정합.
+- **Alternatives considered**: 4언어 소스 전부 Must; 영어만 Must.
+- **Impact**: [`skill-outputs/mvp-scope-planning.md`](./skill-outputs/mvp-scope-planning.md), `context_packet` MVP, 구현·소스 우선순위.
 
 ---
 
-## 2026-05-26 - Skill 파일 위치
+## 2026-06-02 - Requirements Decomposition (챗봇 FR/NFR)
 
-- **Decision**: Skill **절차**는 **`.cursor/skills/<skill-name>/SKILL.md`**; Skill **산출물**은 **`docs/agentic/skill_outputs.md`**.
-- **Reason**: Cursor 프로젝트 Skill 규칙·절차/결과 분리.
-- **Alternatives considered**: Skill 본문만 `skill_outputs`, 절차는 `AGENTS.md` 단일 파일.
-- **Impact**: 에이전트는 Skill 실행 시 `.cursor/skills/<name>.md` 를 읽고, 완료 후 `docs/agentic/` 갱신.
+- **Decision**: 기능 요구사항을 **FR-1~6**(챗 API, 소스·인덱스, faithfulness, 4언어, Expo UI, 운영)으로 분해. 풀앱 FR(대시보드·Push·지도·커뮤니티)은 **Out of Scope** 표로 제외.
+- **Reason**: Skill 3 `requirements-decomposition` — Skill 1·2 산출물 정합.
+- **Alternatives considered**: 기존 7영역 풀앱 FR 표 유지.
+- **Impact**: [`skill-outputs/requirements-decomposition.md`](./skill-outputs/requirements-decomposition.md); AC-1~7; 다음 `mvp-scope-planning`.
+
+---
+
+## 2026-06-02 - Stakeholder Analysis (챗봇·4언어)
+
+- **Decision**: MVP 이해관계자를 **챗봇·RAG·소스·4언어(i18n)** 중심으로 정리. 풀앱 역할(커뮤니티·Push·지도·SSO)은 Non-Scope 표로 분리.
+- **Reason**: Skill 2 `stakeholder-analysis` — Skill 1 챗봇 범위·**ko/en/zh/ja** 사용자 요청 반영.
+- **Alternatives considered**: 기존 풀앱 이해관계자 표 유지.
+- **Impact**: [`skill-outputs/stakeholder-analysis.md`](./skill-outputs/stakeholder-analysis.md); 다음 Skill `requirements-decomposition`.
+
+---
+
+## 2026-06-02 - 다국어 4개 (ko / en / zh / ja)
+
+- **Decision**: 챗봇 **UI·질의·응답·소스** 대상 언어는 **한국어·영어·중국어·일본어**.
+- **Reason**: 사용자 확정(기존 EN/ZH/JA 3언어 가정 대체).
+- **Alternatives considered**: EN/ZH/JA만; 영어만 MVP.
+- **Impact**: i18n·소스 `lang`·QA·번역 범위; `OPEN_QUESTIONS` 한국어 UI 항목 해소.
+
+---
+
+## 2026-06-02 - Service Goal 승인 (챗봇 범위)
+
+- **Decision**: 서비스 목표를 KU **가이드북·FAQ 기반 RAG 챗봇**(출처 필수)으로 확정. **풀앱**(대시보드·Push·지도·커뮤니티)은 Non-Goals.
+- **Reason**: Skill 1 `service-goal-definition` 사용자 승인 — 프로젝트 스코프는 **챗봇만**.
+- **Alternatives considered**: 통합 유학생 앱(대시보드·Push·지도 포함)을 서비스 목표로 유지.
+- **Impact**: 후속 Skill·MVP·구현은 챗봇·RAG·출처 UX 중심.
 
 ---
 
@@ -121,18 +102,9 @@
 
 ---
 
-## 2026-05-26 - 서류 질문: 의도 라우팅 + 제한 LLM 추출
+## 2026-06-02 - Skill 산출물 폴더 구조
 
-- **Decision**: `document_list` 의도는 검색 청크 안에서만 제출서류 목록 추출. **규칙 파싱 우선**, 부족 시 `CHATBOT_ANSWER_MODE=llm_document_extract`일 때만 HF 소형 LLM. LLM 출력은 **컨텍스트 부분 문자열 검증**; 0건이면 `unknown`. 일반 질문은 `citation_first` 문장 인용 유지.
-- **Reason**: 「필요 서류」 질문에 재입국·전입신고 문장이 섞이는 문제(넓은 토큰 매칭·청크 혼합). 파인튜닝 없이 faithfulness 확보.
-- **Alternatives considered**: 파인튜닝/LoRA, cross-encoder reranker만, LLM 전체 요약.
-- **Impact**: `rag/intent.py`, `document_extractor.py`, section `chunking` + `section_title` 메타, citation URL dedupe, 인덱스 재구축 필요.
-
----
-
-## 2026-05-26 - 통합 LLM RAG 답변 (검색 → LLM)
-
-- **Decision**: 기본 `CHATBOT_ANSWER_MODE=llm_rag`. **모든 질문**은 Chroma 검색 후 **검색 청크만** HF instruct에 넣어 답변. `intent`는 검색 확장·프롬프트 힌트만. `citation_first`·`document_extractor` 기본 경로는 제거(실패 시 문장 인용 fallback만). 링크 실시간 fetch 없음.
-- **Reason**: 검색은 되나 규칙·문장 5개 추출이 질문 의도와 어긋남. 사용자 요청(통합 LLM 이해·답변).
-- **Alternatives considered**: 서류만 규칙 유지, 전 질문 `citation_first`, 더 큰 API 모델.
-- **Impact**: [`generator.py`](../backend/rag/generator.py), [`main.py`](../backend/app/main.py) `_build_answer`, [`config.py`](../backend/rag/config.py) `uses_llm_rag()`.
+- **Decision**: Skill **산출물**은 **`docs/agentic/skill-outputs/<skill-name>.md`** (스킬당 파일). 인덱스는 [`skill-outputs/README.md`](./skill-outputs/README.md).
+- **Reason**: 단일 `skill_outputs.md` 대신 스킬별 파일로 탐색·갱신 단순화.
+- **Alternatives considered**: `skill_outputs.md` 섹션 유지.
+- **Impact**: skill-contract·AGENTS·각 Skill 절차 파일 경로 갱신.

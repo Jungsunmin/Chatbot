@@ -26,7 +26,7 @@ description: Define service problem, target users, value, success criteria, non-
 
 ## Output template
 
-`docs/agentic/skill_outputs.md` → `## service_goal_definition`
+`docs/agentic/skill-outputs/service-goal-definition.md`
 
 ```md
 # Service Goal Definition
@@ -38,6 +38,6 @@ description: Define service problem, target users, value, success criteria, non-
 ## Risks
 ```
 
-## Project note
+## 프로젝트 힌트
 
-건국대(KU) **외국인 유학생** 앱 — 다국어·가이드북·온보딩 대시보드·Push·FAQ(출처 필수).
+건국대(KU) **외국인 유학생 RAG FAQ 챗봇** — ko/en/zh/ja, human-curated Korean md, citation 필수, 풀앱(대시보드·Push·지도) Non-Scope.

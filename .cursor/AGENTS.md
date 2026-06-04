@@ -53,7 +53,7 @@ Maintain the following files:
 - `docs/agentic/DECISIONS.md`
 - `docs/agentic/ASSUMPTIONS.md`
 - `docs/agentic/OPEN_QUESTIONS.md`
-- `docs/agentic/skill_outputs.md`
+- `docs/agentic/skill-outputs/` (스킬당 `<skill-name>.md`, 인덱스 [`README.md`](../../docs/agentic/skill-outputs/README.md))
 
 ### `context_packet.md`
 
@@ -105,21 +105,21 @@ Use this sequence unless the user explicitly asks for a focused implementation t
 
 **Skill 정의(절차·출력 템플릿)**: [`.cursor/skills/README.md`](.cursor/skills/README.md) — 각 Skill은 `.cursor/skills/<skill-name>.md`.
 
-**Skill 산출물(프로젝트 결과)**: `docs/agentic/skill_outputs.md` 및 `context_packet.md` 등.
+**Skill 산출물(프로젝트 결과)**: `docs/agentic/skill-outputs/<skill-name>.md` 및 `context_packet.md` 등.
 
-| # | Skill file | 산출물 섹션 (`skill_outputs.md`) |
-|---|------------|----------------------------------|
-| 1 | `service-goal-definition` | `service_goal_definition` |
-| 2 | `stakeholder-analysis` | `stakeholder-analysis` |
-| 3 | `requirements-decomposition` | `requirements-decomposition` |
-| 4 | `mvp-scope-planning` | `mvp-scope-planning` |
-| 5 | `domain-modeling` | `domain-modeling` |
-| 6 | `architecture-planning` | `architecture-planning` |
-| 7 | `database-design` | `database-design` |
-| 8 | `task-breakdown` | `task-breakdown` |
-| 9 | `implementation-prompt-writer` | `implementation-prompt-writer` |
-| 10 | `backend-implementation`, `frontend-implementation` | implementation |
-| 11 | `test-strategy`, `code-review`, `security-privacy-review`, `deployment-operations`, `documentation-handoff` | 각 동명 섹션 |
+| # | Skill file | 산출물 파일 (`skill-outputs/`) |
+|---|------------|--------------------------------|
+| 1 | `service-goal-definition` | `service-goal-definition.md` |
+| 2 | `stakeholder-analysis` | `stakeholder-analysis.md` |
+| 3 | `requirements-decomposition` | `requirements-decomposition.md` |
+| 4 | `mvp-scope-planning` | `mvp-scope-planning.md` |
+| 5 | `domain-modeling` | `domain-modeling.md` |
+| 6 | `architecture-planning` | `architecture-planning.md` |
+| 7 | `database-design` | `database-design.md` |
+| 8 | `task-breakdown` | `task-breakdown.md` |
+| 9 | `implementation-prompt-writer` | `implementation-prompt-writer.md` |
+| 10 | `backend-implementation`, `frontend-implementation` | 동명 `.md` |
+| 11 | `test-strategy`, `code-review`, `security-privacy-review`, `deployment-operations`, `documentation-handoff` | 동명 `.md` |
 
 공통 계약: [`.cursor/skills/skill-contract.md`](.cursor/skills/skill-contract.md)
 

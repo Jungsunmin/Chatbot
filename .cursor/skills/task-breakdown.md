@@ -22,7 +22,7 @@ description: Break MVP into small tasks with scope, dependencies, done criteria,
 
 ## Output template
 
-`docs/agentic/skill_outputs.md` → `## task-breakdown`
+`docs/agentic/skill-outputs/task-breakdown.md`
 
 ```md
 # Task Breakdown

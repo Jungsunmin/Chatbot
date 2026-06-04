@@ -20,7 +20,7 @@ description: Plan iOS/Android build, backend deploy, push credentials, content u
 
 ## Output template
 
-`docs/agentic/skill_outputs.md` → `## deployment-operations`
+`docs/agentic/skill-outputs/deployment-operations.md`
 
 ```md
 # Deployment & Operations
