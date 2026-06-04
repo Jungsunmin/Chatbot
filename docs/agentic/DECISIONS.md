@@ -1,6 +1,15 @@
 # DECISIONS.md
 
-확정된 결정만 기록. 최종 갱신: 2026-06-02
+확정된 결정만 기록. 최종 갱신: 2026-06-04
+
+---
+
+## 2026-06-04 - Visa Phase 1 (MVP 1.0a)
+
+- **Decision**: **1단계 파일럿** = `backend/data/sources/visa/` 한국어 md **10문서** + 동일 RAG 파이프라인. **Enrollment / Housing / Course** 소스는 **Phase 2** (T01 잔여).
+- **Reason**: 콘텐츠 준비 현실(비자 가이드북 pack 완료); 인덱스·챗 E2E를 visa FAQ로 먼저 검증.
+- **Alternatives considered**: T01 Must 4카테고리 4파일을 모두 채운 뒤 구현 시작.
+- **Impact**: [`task-breakdown.md`](./skill-outputs/task-breakdown.md) T01 완료 기준, [`test-strategy.md`](./skill-outputs/test-strategy.md) T20 visa 위주, `context_packet` Next Task.
 
 ---
 

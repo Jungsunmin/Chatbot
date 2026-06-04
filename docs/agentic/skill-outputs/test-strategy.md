@@ -39,16 +39,23 @@
 
 ---
 
-## 샘플 Q&A 매트릭스 (T20)
+## 샘플 Q&A 매트릭스 (T20) — Visa Phase 1
 
 | # | 언어 | 카테고리 | 예시 질문 | 통과? |
 |---|------|----------|-----------|-------|
-| 1 | en | visa | Documents for alien registration? | |
-| 2 | ko | visa | 외국인등록 서류? | |
-| 3 | zh | housing | (housing 질문) | |
-| 4 | ja | course | (course 질문) | |
-| 5 | en | off-topic | Weather today? | unknown |
-| … | | | ≥10 total | |
+| 1 | en | visa | What documents for alien registration? | |
+| 2 | ko | visa | 외국인등록 제출 서류? | |
+| 3 | en | visa | How to extend stay period? | |
+| 4 | ko | visa | 체류기간 연장 방법? | |
+| 5 | en | visa | Part-time work permit for students? | |
+| 6 | zh | visa | 外国人登录需要什么材料？ | |
+| 7 | ja | visa | 再入国許可の申請方法は？ | |
+| 8 | en | visa | Address change report procedure | |
+| 9 | ko | visa | 외국인등록증 재발급 서류? | |
+| 10 | en | off-topic | Weather in Seoul today? | unknown |
+| … | | | ≥10 total (visa 위주) | |
+
+상세 시트: [docs/QA_VISA_PILOT.md](../../QA_VISA_PILOT.md)
 
 ---
 

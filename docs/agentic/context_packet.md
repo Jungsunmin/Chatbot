@@ -1,8 +1,8 @@
 # context_packet.md
 
-**최종 갱신**: 2026-06-02 (Skill 7–11 + handoff 완료)  
+**최종 갱신**: 2026-06-04  
 **브랜치**: `feat/initial-ui-chatbot`  
-**단계**: **기획·아키텍처 완료** → 구현 착수 (task 단위)
+**단계**: **Visa Phase 1 구현** (T01 visa 10건 배치 완료 → T02–T20)
 
 ---
 
@@ -18,7 +18,7 @@ KU **외국인 유학생** RAG FAQ 챗봇 — Korean curated md → 검색 → *
 
 ## MVP Must (요약)
 
-`/chat` + confirm + unknown + citations | Chroma | 4 Korean md sections | Expo 4-lang UI | 무로그인
+`/chat` + confirm + unknown + citations | Chroma | **visa 10 Korean md** (Phase 1) | Expo 4-lang UI | 무로그인
 
 상세: [mvp-scope-planning.md](./skill-outputs/mvp-scope-planning.md) · 인덱스: [architecture AR-1](./skill-outputs/architecture-planning.md)
 
@@ -43,8 +43,9 @@ Expo → POST /chat → Query pipeline → Chroma(KO chunks) → rerank → LLM(
 
 ## Current Next Task
 
-1. **T01** Korean md 4섹션 (content) 또는 **T03** index (if md exists)  
-2. Implementation Prompt 승인 후 [task-breakdown.md](./skill-outputs/task-breakdown.md) 순서대로 PR
+1. **T01 (visa)**: 10× `backend/data/sources/visa/*_ko.md` — 검수 후 `human_curated` (선택)  
+2. **T02–T03**: 인덱스 + `/health`  
+3. **T04–T20**: [task-breakdown.md](./skill-outputs/task-breakdown.md) PR 순서
 
 ## References
 

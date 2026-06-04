@@ -22,7 +22,7 @@
 
 | ID | 작업 | 범위 | 선행 | 완료 기준 | 테스트 |
 |----|------|------|------|-----------|--------|
-| **T01** | 한국어 md 4섹션 + frontmatter v2 | Visa, Enrollment, Housing, Course `.md`, `preserve_terms` | — | 4 files; valid YAML; `updated_at` | 수동 리뷰 |
+| **T01** | 한국어 md + frontmatter v2 | **Phase 1**: `visa/` 10× `*_ko.md`. **Phase 2**: enrollment, housing, course | — | Phase1: 10 files; valid YAML; `updated_at` | 수동 리뷰 |
 | **T02** | Frontmatter loader v2 | indexer meta에 `doc_id`, `sensitive_topic`, `preserve_terms` | T01 | Index builds; meta in Chroma | unit: parse sample |
 | **T03** | 인덱스 구축 및 health | `build_index`, `/health` indexed_chunks>0 | T02 | CLI + API reindex | `GET /health` |
 | **T04** | 언어 감지 + response_lang | `langdetect`, confidence 0.7, UI lang 우선 | — | Unit: en/ko/zh/ja 샘플 | unit |
