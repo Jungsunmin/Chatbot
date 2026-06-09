@@ -16,12 +16,13 @@ cd backend && python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
 python scripts/build_index.py
-uvicorn app.main:app --reload --port 8001
+./scripts/dev_server.sh
+# 또는: uvicorn app.main:app --host 0.0.0.0 --port 8001
 ```
 
 ```bash
 cd mobile && npm install && cp .env.example .env
-# EXPO_PUBLIC_API_URL=http://<LAN-IP>:8001
+# EXPO_PUBLIC_API_URL=auto  (실기기: Expo가 Mac IP 자동 감지)
 npm start
 ```
 

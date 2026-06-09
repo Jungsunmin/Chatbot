@@ -15,8 +15,10 @@ from rag.answer_composer import (
     confirm_prompt_text,
     unknown_message,
 )
+from rag.config import PRELOAD_MODELS
 from rag.generator import generate_answer
 from rag.indexer import build_index
+from rag.model_loader import clear_models, get_model_and_tokenizer, is_ready as llm_is_ready
 from rag.intent import classify_intent
 from rag.pending_sessions import create as create_pending, pop as pop_pending
 from rag.query_pipeline import build_query
@@ -33,13 +35,39 @@ retriever: Retriever | None = None
 AnswerStatus = Literal["answered", "confirm_needed", "unknown"]
 
 
+def _release_ml_resources() -> None:
+    """종료 시 모델 참조·MPS 캐시 정리 (kill 시 semaphore 경고 완화)."""
+    global retriever
+    clear_models()
+    if retriever is not None:
+        retriever.shutdown()
+    try:
+        import torch
+
+        if torch.backends.mps.is_available():
+            torch.mps.empty_cache()
+    except Exception as e:
+        logger.debug("MPS cache clear skipped: %s", e)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global retriever
     count = build_index()
     logger.info("RAG index chunks: %s", count)
     retriever = Retriever()
-    yield
+
+    if PRELOAD_MODELS:
+        logger.info("모델 preload 시작 (임베딩 → LLM, 첫 실행은 수 분 걸릴 수 있음)")
+        retriever.warmup()
+        get_model_and_tokenizer()
+        logger.info("모델 preload 완료 — /chat 요청 가능")
+
+    try:
+        yield
+    finally:
+        logger.info("서버 종료 — ML 리소스 정리 중")
+        _release_ml_resources()
 
 
 app = FastAPI(title="KU International Student Chat API", lifespan=lifespan)
@@ -122,7 +150,16 @@ def _unknown_response(lang: str) -> ChatResponse:
 @app.get("/health")
 def health():
     n = retriever._collection.count() if retriever else 0
-    return {"status": "ok", "indexed_chunks": n}
+    embedder_ready = retriever.embedder_is_ready() if retriever else False
+    llm_ready = llm_is_ready()
+    return {
+        "status": "ok",
+        "indexed_chunks": n,
+        "embedder_ready": embedder_ready,
+        "llm_ready": llm_ready,
+        "models_ready": embedder_ready and llm_ready,
+        "preload_enabled": PRELOAD_MODELS,
+    }
 
 
 @app.post("/chat", response_model=ChatResponse)

@@ -34,3 +34,5 @@ def _env_bool(name: str, default: bool) -> bool:
 
 # 4bit NF4 (bitsandbytes, CUDA 권장). Mac은 fp16 MPS 등으로 자동 대체 가능
 LOAD_IN_4BIT = _env_bool("CHATBOT_LOAD_IN_4BIT", True)
+# 서버 시작 시 임베딩·LLM 미리 로드 (첫 /chat 지연·kill 중 오류 완화)
+PRELOAD_MODELS = _env_bool("CHATBOT_PRELOAD_MODELS", True)

@@ -15,6 +15,7 @@ import {
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import {
   checkHealth,
+  getApiBaseUrl,
   sendChat,
   sendChatConfirm,
   type ChatResponse,
@@ -188,7 +189,13 @@ function AppContent() {
             </Pressable>
           ))}
         </View>
-        {apiOk === false && <Text style={styles.warn}>{s.apiOffline}</Text>}
+        {apiOk === false && (
+          <Text style={styles.warn}>
+            {s.apiOffline}
+            {"\n"}
+            {getApiBaseUrl()}
+          </Text>
+        )}
         <Pressable style={styles.primaryBtn} onPress={() => setScreen("chat")}>
           <Text style={styles.primaryBtnText}>{s.openChat}</Text>
         </Pressable>

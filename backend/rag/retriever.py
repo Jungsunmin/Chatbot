@@ -89,6 +89,18 @@ class Retriever:
         )
         self._collection = self._client.get_or_create_collection(CHROMA_COLLECTION)
 
+    def embedder_is_ready(self) -> bool:
+        """임베딩 모델이 메모리에 로드됐는지."""
+        return self._embedder is not None
+
+    def warmup(self) -> None:
+        """서버 시작 시 임베딩 모델을 미리 로드."""
+        self._embedder_model()
+
+    def shutdown(self) -> None:
+        """서버 종료 시 임베딩 참조 해제."""
+        self._embedder = None
+
     def _embedder_model(self) -> SentenceTransformer:
         if self._embedder is None:
             self._embedder = SentenceTransformer(EMBEDDING_MODEL)
