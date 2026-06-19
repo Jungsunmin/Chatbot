@@ -75,6 +75,11 @@ def _load_causal_lm(model_id: str, load_in_4bit: bool):
     )
 
 
+def is_ready() -> bool:
+    """LLM이 메모리에 로드됐는지."""
+    return _model is not None
+
+
 def get_model_and_tokenizer():
     global _model, _tokenizer
     with _lock:
@@ -87,3 +92,12 @@ def get_model_and_tokenizer():
         _model = _load_causal_lm(MODEL_ID, load_in_4bit=LOAD_IN_4BIT)
         logger.info("Model ready: %s (4bit_requested=%s)", MODEL_ID, LOAD_IN_4BIT)
         return _model, _tokenizer
+
+
+def clear_models() -> None:
+    """서버 종료 시 GPU/RAM 참조 해제."""
+    global _model, _tokenizer
+    with _lock:
+        _model = None
+        _tokenizer = None
+    logger.info("LLM 언로드 완료")

@@ -15,8 +15,8 @@ import {
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import {
   checkHealth,
+  getApiBaseUrl,
   sendChat,
-  sendChatConfirm,
   type ChatResponse,
   type Lang,
 } from "./src/api/client";
@@ -32,9 +32,6 @@ type ChatMessage = {
   text: string;
   citations?: ChatResponse["citations"];
   status?: ChatResponse["status"];
-  pendingId?: string;
-  confirmPrompt?: string;
-  confirmResolved?: boolean;
 };
 
 const LANGS: { code: Lang; label: string }[] = [
@@ -84,15 +81,9 @@ function AppContent() {
       {
         id: `${Date.now()}-a`,
         role: "assistant",
-        text:
-          res.status === "confirm_needed" && res.confirm_prompt
-            ? `${res.confirm_prompt}\n\n${res.answer}`
-            : res.answer,
-        citations: showCitations ? res.citations : res.status === "confirm_needed" ? res.citations : [],
+        text: res.answer,
+        citations: showCitations ? res.citations : [],
         status: res.status,
-        pendingId: res.pending_id ?? undefined,
-        confirmPrompt: res.confirm_prompt ?? undefined,
-        confirmResolved: res.status !== "confirm_needed",
       },
     ]);
   };
@@ -106,29 +97,6 @@ function AppContent() {
     setLoading(true);
     try {
       const res = await sendChat(q, lang);
-      appendAssistant(res);
-    } catch (e) {
-      setMessages((m) => [
-        ...m,
-        {
-          id: `${Date.now()}-err`,
-          role: "assistant",
-          text: e instanceof Error ? e.message : "Request failed",
-        },
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const postConfirm = async (pendingId: string, confirm: "yes" | "no", msgId: string) => {
-    if (loading) return;
-    setLoading(true);
-    setMessages((m) =>
-      m.map((item) => (item.id === msgId ? { ...item, confirmResolved: true } : item))
-    );
-    try {
-      const res = await sendChatConfirm(pendingId, confirm, lang);
       appendAssistant(res);
     } catch (e) {
       setMessages((m) => [
@@ -188,7 +156,13 @@ function AppContent() {
             </Pressable>
           ))}
         </View>
-        {apiOk === false && <Text style={styles.warn}>{s.apiOffline}</Text>}
+        {apiOk === false && (
+          <Text style={styles.warn}>
+            {s.apiOffline}
+            {"\n"}
+            {getApiBaseUrl()}
+          </Text>
+        )}
         <Pressable style={styles.primaryBtn} onPress={() => setScreen("chat")}>
           <Text style={styles.primaryBtnText}>{s.openChat}</Text>
         </Pressable>
@@ -242,24 +216,6 @@ function AppContent() {
                       • {c.title} ({c.source_id})
                     </Text>
                   )
-                )}
-              {item.status === "confirm_needed" &&
-                item.pendingId &&
-                !item.confirmResolved && (
-                  <View style={styles.confirmRow}>
-                    <Pressable
-                      style={styles.confirmBtn}
-                      onPress={() => postConfirm(item.pendingId!, "yes", item.id)}
-                    >
-                      <Text style={styles.confirmBtnText}>{s.confirmYes}</Text>
-                    </Pressable>
-                    <Pressable
-                      style={[styles.confirmBtn, styles.confirmBtnNo]}
-                      onPress={() => postConfirm(item.pendingId!, "no", item.id)}
-                    >
-                      <Text style={styles.confirmBtnText}>{s.confirmNo}</Text>
-                    </Pressable>
-                  </View>
                 )}
             </View>
           )}
@@ -369,14 +325,4 @@ const styles = StyleSheet.create({
     minWidth: 64,
   },
   sendText: { color: "#fff", fontWeight: "600" },
-  confirmRow: { flexDirection: "row", gap: 8, marginTop: 12 },
-  confirmBtn: {
-    flex: 1,
-    backgroundColor: "#2563eb",
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  confirmBtnNo: { backgroundColor: "#475569" },
-  confirmBtnText: { color: "#fff", fontSize: 13, fontWeight: "600" },
 });

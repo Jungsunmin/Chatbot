@@ -1,8 +1,7 @@
 /**
  * 백엔드 RAG 챗 API 클라이언트
  */
-const API_BASE =
-  process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, "") ?? "http://127.0.0.1:8001";
+import { resolveApiBase } from "./resolveApiBase";
 
 export type Lang = "ko" | "en" | "zh" | "ja";
 export type AnswerStatus = "answered" | "confirm_needed" | "unknown";
@@ -34,7 +33,7 @@ export interface ChatPayload {
 }
 
 async function postChatBody(body: ChatPayload): Promise<ChatResponse> {
-  const res = await fetch(`${API_BASE}/chat`, {
+  const res = await fetch(`${resolveApiBase()}/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -51,23 +50,14 @@ export async function sendChat(message: string, lang: Lang): Promise<ChatRespons
   return postChatBody({ message, lang });
 }
 
-/** 2차 확인 (예/아니오) */
-export async function sendChatConfirm(
-  pendingId: string,
-  confirm: "yes" | "no",
-  lang: Lang
-): Promise<ChatResponse> {
-  return postChatBody({
-    message: "",
-    lang,
-    confirm,
-    pending_id: pendingId,
-  });
+/** health 체크에 쓰는 URL (오프라인 안내용) */
+export function getApiBaseUrl(): string {
+  return resolveApiBase();
 }
 
 export async function checkHealth(): Promise<boolean> {
   try {
-    const res = await fetch(`${API_BASE}/health`);
+    const res = await fetch(`${getApiBaseUrl()}/health`);
     return res.ok;
   } catch {
     return false;

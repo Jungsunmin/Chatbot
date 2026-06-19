@@ -12,7 +12,8 @@ _SUBSECTION_SPLIT = re.compile(
 
 @dataclass
 class Chunk:
-    text: str
+    text: str        # 원본 텍스트 — LLM 프롬프트·citations 표시용
+    embed_text: str  # 컨텍스트 prefix 붙인 텍스트 — 임베딩 전용
     source_id: str
     title: str
     lang: str
@@ -22,6 +23,17 @@ class Chunk:
     section_title: str = ""
 
 
+def _embed_prefix(doc_title: str, section_title: str) -> str:
+    """임베딩용 컨텍스트 prefix.
+
+    동일 표현("14일 이내", "제출서류" 등)이 여러 문서에 있을 때
+    임베딩 벡터가 문서마다 달라지도록 문서·섹션 정보를 앞에 붙인다.
+    """
+    if section_title and section_title != doc_title:
+        return f"{doc_title} > {section_title}: "
+    return f"{doc_title}: "
+
+
 def _emit_pieces(
     text: str,
     source_id: str,
@@ -29,15 +41,19 @@ def _emit_pieces(
     lang: str,
     section_title: str,
     max_chars: int,
+    min_chars: int,
     out: list[Chunk],
 ) -> None:
     block = text.strip()
-    if not block:
+    if not block or len(block) < min_chars:
         return
+    prefix = _embed_prefix(page_title, section_title)
     while len(block) > max_chars:
+        piece = block[:max_chars]
         out.append(
             Chunk(
-                text=block[:max_chars],
+                text=piece,
+                embed_text=prefix + piece,
                 source_id=source_id,
                 title=page_title,
                 lang=lang,
@@ -49,6 +65,7 @@ def _emit_pieces(
         out.append(
             Chunk(
                 text=block,
+                embed_text=prefix + block,
                 source_id=source_id,
                 title=page_title,
                 lang=lang,
@@ -63,8 +80,13 @@ def chunk_markdown(
     title: str,
     lang: str,
     max_chars: int = 600,
+    min_chars: int = 20,
 ) -> list[Chunk]:
-    """## 및 다./나./라. 소제목 기준 분할 + section_title 메타."""
+    """## 및 다./나./라. 소제목 기준 분할.
+
+    각 청크는 text(원본)와 embed_text(contextual prefix 포함)를 별도 보유.
+    min_chars 미만(제목만 있는 청크 등)은 제외.
+    """
     chunks: list[Chunk] = []
     major_blocks = re.split(r"\n(?=## )", text.strip())
 
@@ -82,12 +104,12 @@ def chunk_markdown(
             body = major
 
         if not body.strip():
-            _emit_pieces(major, source_id, title, lang, section_path, max_chars, chunks)
+            _emit_pieces(major, source_id, title, lang, section_path, max_chars, min_chars, chunks)
             continue
 
         sub_parts = _SUBSECTION_SPLIT.split(body)
         if len(sub_parts) <= 1:
-            _emit_pieces(body, source_id, title, lang, section_path, max_chars, chunks)
+            _emit_pieces(body, source_id, title, lang, section_path, max_chars, min_chars, chunks)
             continue
 
         for sub in sub_parts:
@@ -98,6 +120,6 @@ def chunk_markdown(
             head = sub.split("\n", 1)[0].strip()
             if re.match(r"^[가-힣a-zA-Z]?\.?\s*", head) and len(head) < 80:
                 sub_title = f"{section_path} > {head}"
-            _emit_pieces(sub, source_id, title, lang, sub_title, max_chars, chunks)
+            _emit_pieces(sub, source_id, title, lang, sub_title, max_chars, min_chars, chunks)
 
     return chunks
