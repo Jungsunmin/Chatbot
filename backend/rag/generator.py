@@ -50,6 +50,21 @@ def _preserve_terms_hint(terms: list[str], lang: str) -> str:
     return ""
 
 
+def _dedup_output_lines(text: str) -> str:
+    """LLM 출력에서 중복 줄 제거 — 반복 루프 발생 시 후처리 안전망."""
+    lines = text.splitlines()
+    seen: set[str] = set()
+    out: list[str] = []
+    for line in lines:
+        key = line.strip()
+        if key and key in seen:
+            continue
+        if key:
+            seen.add(key)
+        out.append(line)
+    return "\n".join(out)
+
+
 def _run_llm(system: str, user: str) -> str | None:
     """LLM 호출 — 성공 시 답변 문자열, 실패 시 None."""
     try:
@@ -79,11 +94,10 @@ def _run_llm(system: str, user: str) -> str | None:
             max_new_tokens=_MAX_NEW_TOKENS,
             do_sample=False,
             temperature=1.0,  # do_sample=False 시 무시되나 일부 구현에서 명시 필요
-            repetition_penalty=1.15,    # 같은 토큰 반복 억제
-            no_repeat_ngram_size=4,     # 4-gram 중복 방지 — 문장 루프 차단
         )
         new_tokens = outputs[0][inputs["input_ids"].shape[1] :]
-        return tokenizer.decode(new_tokens, skip_special_tokens=True).strip()
+        raw = tokenizer.decode(new_tokens, skip_special_tokens=True).strip()
+        return _dedup_output_lines(raw)
     except Exception as e:
         logger.warning("LLM generation failed: %s", e)
         return None
