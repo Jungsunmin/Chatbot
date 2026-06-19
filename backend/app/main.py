@@ -1,4 +1,4 @@
-"""FastAPI — RAG 챗봇 API (검색 → LLM RAG + confirm 턴)."""
+"""FastAPI — RAG 챗봇 API (검색 → 답변 생성)."""
 from __future__ import annotations
 
 import logging
@@ -10,17 +10,15 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, model_validator
 
-from rag.answer_composer import (
-    compose_confirm_preview,
-    confirm_prompt_text,
-    unknown_message,
-)
+from rag.answer_composer import unknown_message
 from rag.config import PRELOAD_MODELS
-from rag.generator import generate_answer
-from rag.indexer import build_index
+from rag.doc_router import resolve_doc_route
+from rag.generator import generate_answer, generate_answer_from_source
+from rag.indexer import LoadedSource, build_index
+from rag.source_loader import load_source_by_doc_id
 from rag.model_loader import clear_models, get_model_and_tokenizer, is_ready as llm_is_ready
 from rag.intent import classify_intent
-from rag.pending_sessions import create as create_pending, pop as pop_pending
+from rag.verbatim_composer import compose_verbatim_answer
 from rag.query_pipeline import build_query
 from rag.retriever import Retriever
 from rag.safety import safety_notice_for_docs
@@ -115,6 +113,21 @@ class ChatResponse(BaseModel):
     safety_notice: str | None = None
 
 
+def _citation_from_source(source: LoadedSource) -> list[Citation]:
+    """전문 로드 경로 — 출처 1건."""
+    return [
+        Citation(
+            source_id=source.source_id,
+            title=source.title,
+            lang=source.lang,
+            excerpt=source.body[:300],
+            source_url=source.source_url,
+            label=source.label,
+            doc_type=source.doc_type,
+        )
+    ]
+
+
 def _to_citations(docs: list[RetrievedDoc]) -> list[Citation]:
     """source_url 기준 중복 제거 — 참고 링크 1개."""
     seen_urls: set[str] = set()
@@ -167,56 +180,45 @@ def chat(req: ChatRequest):
     if retriever is None:
         raise HTTPException(503, "Retriever not ready")
 
-    if req.confirm is not None:
-        session = pop_pending(req.pending_id or "")
-        if session is None:
-            raise HTTPException(404, "pending session expired or not found")
-        if req.confirm == "no":
-            return _unknown_response(session.lang)
-        answer, used_docs, model_used = _build_answer(
-            session.docs, session.lang, session.query, user_confirmed=True
-        )
-        if answer == unknown_message(session.lang):
-            return _unknown_response(session.lang)
-        return ChatResponse(
-            status="answered",
-            answer=answer,
-            citations=_to_citations(used_docs or session.docs),
-            model_used=model_used,
-        )
-
     q = build_query(req.message.strip(), req.lang)
-    retrieval = retriever.search_with_band(q)
     response_lang = q.response_lang
+
+    # doc_id 라우팅 성공 시 md 전문 → LLM (Chroma 미사용)
+    route = resolve_doc_route(q.message)
+    if route:
+        source = load_source_by_doc_id(route.doc_id)
+        if source:
+            answer, model_used = generate_answer_from_source(
+                source, q.message, response_lang
+            )
+            notice = safety_notice_for_docs(response_lang, [source])
+            if answer == unknown_message(response_lang):
+                return _unknown_response(response_lang)
+            return ChatResponse(
+                status="answered",
+                answer=answer,
+                citations=_citation_from_source(source),
+                model_used=model_used,
+                safety_notice=notice,
+            )
+
+    # 라우팅 실패 — 청크 검색 fallback
+    retrieval = retriever.search_with_band(q)
     notice = safety_notice_for_docs(response_lang, retrieval.docs)
 
     if retrieval.band in ("none", "low") or not retrieval.docs:
         return _unknown_response(response_lang)
 
-    if retrieval.band == "high":
-        answer, used_docs, model_used = _build_answer(
-            retrieval.docs, response_lang, q.message
-        )
-        if answer == unknown_message(response_lang):
-            return _unknown_response(response_lang)
-        return ChatResponse(
-            status="answered",
-            answer=answer,
-            citations=_to_citations(used_docs or retrieval.docs),
-            model_used=model_used,
-            safety_notice=notice,
-        )
-
-    pending_id = create_pending(q.message, response_lang, retrieval.docs)
-    preview = compose_confirm_preview(retrieval.docs, response_lang)
-    prompt = confirm_prompt_text(response_lang)
+    answer, used_docs, model_used = _build_answer(
+        retrieval.docs, response_lang, q.message
+    )
+    if answer == unknown_message(response_lang):
+        return _unknown_response(response_lang)
     return ChatResponse(
-        status="confirm_needed",
-        answer=preview,
-        citations=_to_citations(retrieval.docs[:1]),
-        pending_id=pending_id,
-        confirm_prompt=prompt,
-        model_used=False,
+        status="answered",
+        answer=answer,
+        citations=_to_citations(used_docs or retrieval.docs),
+        model_used=model_used,
         safety_notice=notice,
     )
 
@@ -225,13 +227,20 @@ def _build_answer(
     docs: list[RetrievedDoc],
     lang: str,
     query: str = "",
-    user_confirmed: bool = False,
 ) -> tuple[str, list[RetrievedDoc], bool]:
-    """(answer_text, citations용 청크, model_used). intent는 검색에만 쓰고 답은 통합 LLM."""
+    """(answer_text, citations용 청크, model_used).
+
+    document_list intent: verbatim_composer로 LLM 없이 서류 목록 추출 시도.
+    추출 실패 시 LLM fallback.
+    """
     intent = classify_intent(query)
-    answer, model_used = generate_answer(
-        query, docs, lang, intent=intent, user_confirmed=user_confirmed
-    )
+
+    if intent == "document_list":
+        verbatim = compose_verbatim_answer(docs, intent, lang)
+        if verbatim:
+            return verbatim, docs, False
+
+    answer, model_used = generate_answer(query, docs, lang, intent=intent)
     if answer == unknown_message(lang):
         return answer, [], model_used
 

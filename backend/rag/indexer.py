@@ -80,6 +80,11 @@ def _load_sources() -> list[LoadedSource]:
     return items
 
 
+def list_sources() -> list[LoadedSource]:
+    """SOURCES_DIR 아래 모든 가이드북 소스 목록."""
+    return _load_sources()
+
+
 def build_index(force: bool = False) -> int:
     """Chroma 컬렉션을 (재)구축하고 청크 수를 반환."""
     INDEX_DIR.mkdir(parents=True, exist_ok=True)
@@ -113,8 +118,11 @@ def build_index(force: bool = False) -> int:
     if not all_chunks:
         return 0
 
-    texts = [c.text for _, c in all_chunks]
-    embeddings = embedder.encode(texts, show_progress_bar=False).tolist()
+    # embed_text: contextual prefix 포함 — 임베딩 품질 향상
+    # text: 원본 — Chroma document 저장, LLM 프롬프트·citations에 사용
+    embed_texts = [c.embed_text for _, c in all_chunks]
+    display_texts = [c.text for _, c in all_chunks]
+    embeddings = embedder.encode(embed_texts, show_progress_bar=False).tolist()
     ids = [
         hashlib.sha256(
             f"{src.doc_id or c.source_id}:{i}:{c.text[:80]}".encode()
@@ -124,7 +132,7 @@ def build_index(force: bool = False) -> int:
     collection.add(
         ids=ids,
         embeddings=embeddings,
-        documents=texts,
+        documents=display_texts,
         metadatas=[
             {
                 "source_id": c.source_id,

@@ -50,20 +50,6 @@ export async function sendChat(message: string, lang: Lang): Promise<ChatRespons
   return postChatBody({ message, lang });
 }
 
-/** 2차 확인 (예/아니오) */
-export async function sendChatConfirm(
-  pendingId: string,
-  confirm: "yes" | "no",
-  lang: Lang
-): Promise<ChatResponse> {
-  return postChatBody({
-    message: "",
-    lang,
-    confirm,
-    pending_id: pendingId,
-  });
-}
-
 /** health 체크에 쓰는 URL (오프라인 안내용) */
 export function getApiBaseUrl(): string {
   return resolveApiBase();
