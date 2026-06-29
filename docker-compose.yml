@@ -1,9 +1,9 @@
 services:
-  backend:
+  backend_dev:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: chatbot-backend
+    container_name: chatbot-backend_dev
     restart: unless-stopped
     ports:
       - "8002:8002"
