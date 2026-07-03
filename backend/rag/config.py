@@ -14,14 +14,12 @@ EMBEDDING_MODEL = os.getenv(
     "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
 )
 TOP_K = int(os.getenv("CHATBOT_TOP_K", "4"))
-# llm_rag: 검색 청크 → LLM (유일한 답변 경로)
-ANSWER_MODE = os.getenv("CHATBOT_ANSWER_MODE", "llm_rag")
+MAX_QUERY_LENGTH = int(os.getenv("CHATBOT_MAX_QUERY_LENGTH", "300"))
 CHROMA_COLLECTION = "ku_intl_docs"
 
 # Chroma cosine distance — 낮을수록 유사. env로 조정 가능.
 DISTANCE_HIGH_MAX = float(os.getenv("CHATBOT_DISTANCE_HIGH_MAX", "0.35"))
 DISTANCE_LOW_MAX = float(os.getenv("CHATBOT_DISTANCE_LOW_MAX", "0.55"))
-PENDING_SESSION_TTL_SEC = int(os.getenv("CHATBOT_PENDING_TTL_SEC", "600"))
 LANG_DETECT_MIN_CONFIDENCE = float(os.getenv("CHATBOT_LANG_DETECT_MIN_CONFIDENCE", "0.70"))
 
 

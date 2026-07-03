@@ -87,7 +87,7 @@ resolve_doc_route()    ← keyword rules → specific doc_id
 | `rag/generator.py` | Calls HuggingFace model via `model_loader`. Outputs `__UNKNOWN__` marker when query is out-of-scope. |
 | `rag/model_loader.py` | Singleton LLM loader. `CHATBOT_PRELOAD_MODELS=true` loads at startup; otherwise lazy on first `/chat`. |
 | `rag/prompt_templates.py` | 5-section structured prompt (ko/en/zh/ja). `build_system_prompt()` + `build_user_prompt()` used by both answer paths. |
-| `rag/answer_composer.py` | Hard-coded fixed phrases: `unknown_message()`, `confirm_prompt_text()`. No LLM involved. |
+| `rag/answer_composer.py` | Hard-coded fixed phrase: `unknown_message()`. No LLM involved. |
 | `rag/verbatim_composer.py` | For `document_list` intent: extracts document lists from chunks without calling LLM. Falls back to LLM if extraction fails. |
 
 ### Answer Generation Details
@@ -143,9 +143,9 @@ Single-file app (`mobile/App.tsx`) + `src/api/client.ts` (fetch wrapper) + `src/
 | `CHATBOT_LOAD_IN_4BIT` | `true` | 4-bit NF4 quant (CUDA). Mac uses fp16 MPS automatically |
 | `CHATBOT_PRELOAD_MODELS` | `true` | Load models at startup vs. first request |
 | `CHATBOT_TOP_K` | `4` | Chunks retrieved per query |
+| `CHATBOT_MAX_QUERY_LENGTH` | `300` | Max characters accepted in `ChatRequest.message` |
 | `CHATBOT_DISTANCE_HIGH_MAX` | `0.35` | High-band ceiling |
 | `CHATBOT_DISTANCE_LOW_MAX` | `0.55` | Medium-band ceiling (above = no answer) |
-| `CHATBOT_PENDING_TTL_SEC` | `600` | In-memory pending session TTL (seconds) |
 
 ## Adding a New Document
 

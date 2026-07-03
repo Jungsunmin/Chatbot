@@ -41,6 +41,10 @@ const LANGS: { code: Lang; label: string }[] = [
   { code: "ja", label: "日本語" },
 ];
 
+// 백엔드 CHATBOT_MAX_QUERY_LENGTH 기본값과 동일 — 두 시스템이 별도라 자동 동기화되지 않음
+const MAX_MESSAGE_LENGTH = 300;
+const LENGTH_WARNING_THRESHOLD = 30;
+
 export default function App() {
   return (
     <SafeAreaProvider>
@@ -221,6 +225,11 @@ function AppContent() {
           )}
           ListEmptyComponent={<Text style={styles.empty}>{s.placeholder}</Text>}
         />
+        {input.length >= MAX_MESSAGE_LENGTH - LENGTH_WARNING_THRESHOLD && (
+          <Text style={styles.lengthCounter}>
+            {input.length}/{MAX_MESSAGE_LENGTH}
+          </Text>
+        )}
         <View style={styles.inputRow}>
           <TextInput
             style={styles.input}
@@ -229,6 +238,7 @@ function AppContent() {
             value={input}
             onChangeText={setInput}
             editable={!loading}
+            maxLength={MAX_MESSAGE_LENGTH}
           />
           <Pressable style={styles.sendBtn} onPress={postChat} disabled={loading}>
             {loading ? (
@@ -266,6 +276,13 @@ const styles = StyleSheet.create({
   chipText: { color: "#cbd5e1", fontSize: 14 },
   chipTextActive: { color: "#fff", fontWeight: "600" },
   warn: { color: "#fbbf24", marginHorizontal: 20, marginTop: 8 },
+  lengthCounter: {
+    color: "#fbbf24",
+    fontSize: 11,
+    textAlign: "right",
+    marginHorizontal: 12,
+    marginTop: 4,
+  },
   primaryBtn: {
     margin: 20,
     backgroundColor: "#2563eb",

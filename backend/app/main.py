@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, model_validator
 
 from rag.answer_composer import unknown_message
-from rag.config import PRELOAD_MODELS
+from rag.config import MAX_QUERY_LENGTH, PRELOAD_MODELS
 from rag.doc_router import resolve_doc_route
 from rag.generator import generate_answer, generate_answer_from_source
 from rag.indexer import LoadedSource, build_index
@@ -79,7 +79,7 @@ app.add_middleware(
 
 
 class ChatRequest(BaseModel):
-    message: str = Field(default="", max_length=2000)
+    message: str = Field(default="", max_length=MAX_QUERY_LENGTH)
     lang: Literal["ko", "en", "zh", "ja"] = "ko"
     confirm: Literal["yes", "no"] | None = None
     pending_id: str | None = None
