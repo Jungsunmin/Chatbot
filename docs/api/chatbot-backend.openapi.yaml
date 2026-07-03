@@ -1,0 +1,171 @@
+openapi: 3.0.3
+info:
+  title: KU International Student Chatbot Backend API
+  version: 0.1.0
+  description: >
+    비자·행정 RAG 챗봇 백엔드 (backend/app/main.py 기준, 구현된 스펙).
+    GPU 호스트에 자체 배포되며 LLM(Qwen2.5-1.5B-Instruct)과
+    임베더(multilingual MiniLM)를 in-process로 로드한다.
+    캠퍼스·가이드북 백엔드(campus-guidebook-backend.openapi.yaml)와는
+    완전히 독립된 서비스 — 프론트엔드가 각각 직접 호출한다.
+servers:
+  - url: "http://<gpu-host>:8001"
+    description: 챗봇 백엔드 (GPU 자체 호스팅)
+
+paths:
+  /health:
+    get:
+      summary: 헬스 체크 및 모델 준비 상태
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                  - indexed_chunks
+                  - embedder_ready
+                  - llm_ready
+                  - models_ready
+                  - preload_enabled
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  indexed_chunks:
+                    type: integer
+                    description: Chroma에 인덱싱된 청크 수
+                  embedder_ready:
+                    type: boolean
+                  llm_ready:
+                    type: boolean
+                  models_ready:
+                    type: boolean
+                    description: embedder_ready AND llm_ready
+                  preload_enabled:
+                    type: boolean
+                    description: CHATBOT_PRELOAD_MODELS 환경변수 값
+
+  /chat:
+    post:
+      summary: 챗봇 질의 (1차 질문 또는 confirm 응답)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatRequest"
+      responses:
+        "200":
+          description: 답변 (또는 unknown 응답)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatResponse"
+        "422":
+          description: >
+            요청 검증 실패 — confirm 없이 message가 비어있거나,
+            confirm은 있는데 pending_id가 없는 경우 (ChatRequest validator)
+        "503":
+          description: Retriever not ready (서버 기동 직후)
+
+  /admin/reindex:
+    post:
+      summary: (개발용) Chroma 인덱스 강제 재구축
+      description: 운영 환경에서는 노출하지 않는 것을 권장 (개발 편의용 엔드포인트)
+      responses:
+        "200":
+          description: 재색인 완료
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [indexed_chunks]
+                properties:
+                  indexed_chunks:
+                    type: integer
+
+components:
+  schemas:
+    ChatRequest:
+      type: object
+      description: >
+        message는 confirm이 없을 때(1차 질문) 필수.
+        confirm이 있으면(예/아니오 응답 턴) pending_id가 필수.
+        단, 서버 코드(2026-07 기준)는 confirm/pending_id 분기를
+        실제로 처리하지 않으며 항상 message 기반 1차 질의로만 응답한다 —
+        confirm 플로우는 스키마상 정의만 되어 있고 미구현 상태.
+      properties:
+        message:
+          type: string
+          maxLength: 2000
+          default: ""
+        lang:
+          type: string
+          enum: [ko, en, zh, ja]
+          default: ko
+        confirm:
+          type: string
+          enum: [yes, no]
+          nullable: true
+        pending_id:
+          type: string
+          nullable: true
+
+    Citation:
+      type: object
+      required: [source_id, title, lang, excerpt]
+      properties:
+        source_id:
+          type: string
+        title:
+          type: string
+        lang:
+          type: string
+        excerpt:
+          type: string
+          description: 원문 앞 300자 미리보기
+        source_url:
+          type: string
+          default: ""
+        label:
+          type: string
+          default: ""
+        doc_type:
+          type: string
+          default: ""
+
+    ChatResponse:
+      type: object
+      required: [status, answer, citations]
+      properties:
+        status:
+          type: string
+          enum: [answered, confirm_needed, unknown]
+          description: >
+            confirm_needed는 스키마에 정의되어 있으나 현재 /chat 핸들러는
+            이 값을 반환하지 않는다 (항상 answered 또는 unknown).
+        answer:
+          type: string
+        citations:
+          type: array
+          items:
+            $ref: "#/components/schemas/Citation"
+        model_used:
+          type: boolean
+          default: false
+          description: LLM 생성 답변이면 true, verbatim_composer(비-LLM) 추출이면 false
+        pending_id:
+          type: string
+          nullable: true
+          description: 미구현 (항상 null)
+        confirm_prompt:
+          type: string
+          nullable: true
+          description: 미구현 (항상 null)
+        safety_notice:
+          type: string
+          nullable: true
+          description: sensitive_topic 문서 매칭 시 안내 문구 (rag/safety.py)
