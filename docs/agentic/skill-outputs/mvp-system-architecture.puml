@@ -1,0 +1,79 @@
+@startuml mvp_system_architecture
+skinparam componentStyle rectangle
+skinparam wrapWidth 220
+skinparam defaultTextAlignment center
+
+actor "유학생\n(Student)" as User
+
+package "Mobile App (Expo / React Native)" as Mobile #E8F0FE {
+  [Chat UI] as ChatUI
+  [Campus Map & Navigation UI] as MapUI
+  [Guidebook Dashboard UI] as DashUI
+  [API Client\n(src/api/client.ts 확장,\n백엔드 2곳 base URL 보유)] as ApiClient
+  ChatUI --> ApiClient
+  MapUI --> ApiClient
+  DashUI --> ApiClient
+}
+
+cloud "Public Network (HTTPS)" as PublicNet
+
+package "챗봇 백엔드 (FastAPI, GPU 자체 호스팅)" as ChatBackend #FFF3E0 {
+  component "RAG Pipeline (기존 rag/, 변경 없음)" as ChatPipeline {
+    [Query Pipeline] as QP
+    [Doc Router] as DocRouter
+    [Retriever] as Retriever
+    [Answer / Verbatim Composer] as Composer
+    [Generator] as Generator
+    QP --> DocRouter
+    DocRouter --> Retriever : no doc_id match
+    QP --> Composer
+    Composer --> Generator
+  }
+  [Model Loader\n(LLM Qwen2.5-1.5B +\nEmbedder MiniLM, in-process)] as ModelLoader
+  [Index Builder\n(scripts/build_index.py)] as IndexBuilder
+  database "Chroma Vector Index" as Chroma
+  folder "비자 문서 SSOT\n(data/sources/visa/**/*.md)" as VisaMD
+
+  Generator --> ModelLoader : generate()
+  Retriever --> ModelLoader : embed(query)
+  Retriever --> Chroma : vector search
+  DocRouter --> VisaMD : doc_id 직접 라우팅
+  IndexBuilder --> VisaMD : read
+  IndexBuilder --> ModelLoader : embed(chunks)
+  IndexBuilder --> Chroma : write
+}
+
+package "캠퍼스·가이드북 백엔드 (FastAPI, 신규 독립 서비스, CPU)" as ContentBackend #F3E8FD {
+  component "Document Catalog Service (신규)" as CatalogService {
+    [Doc Tree Builder] as TreeBuilder
+    [Source Loader] as SourceLoader
+    TreeBuilder --> SourceLoader
+  }
+  component "Campus Map Service (신규)" as MapService {
+    [POI / Graph Loader] as GraphLoader
+    [Pathfinding Engine] as Pathfinder
+    Pathfinder --> GraphLoader
+  }
+  folder "가이드북 문서집\n(비자 문서와 별도)" as GuideMD
+  folder "Campus Map Assets\n(자체 제작 지도 이미지 +\nPOI/그래프 JSON)" as MapData
+
+  SourceLoader --> GuideMD
+  GraphLoader --> MapData
+}
+
+package "External / Offline" as External #ECEFF1 {
+  [공식 학교·출입국 웹페이지\n(human curation)] as OfficialWeb
+}
+
+User --> ChatUI
+User --> MapUI
+User --> DashUI
+
+ApiClient --> PublicNet
+PublicNet --> ChatBackend : POST /chat
+PublicNet --> ContentBackend : "GET /documents/tree, /documents/{doc_id}\nGET /campus/map\nPOST /campus/route"
+
+OfficialWeb ..> VisaMD : 사람이 직접 큐레이션 (offline)
+OfficialWeb ..> GuideMD : 사람이 직접 큐레이션 (offline)
+
+@enduml
