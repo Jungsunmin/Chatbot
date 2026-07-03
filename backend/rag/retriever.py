@@ -28,6 +28,7 @@ _BOOST_SUBMISSION_SECTION = -2
 _BOOST_EXPANDED_TERM = -1
 _BOOST_DOC_ID_MATCH = -6
 _PENALTY_DOC_ID_MISMATCH = 4
+_BOOST_LANG_MATCH = -3
 
 
 @dataclass
@@ -87,8 +88,9 @@ def _rerank_heuristic(
     intent: QueryIntent,
     expanded_terms: list[str],
     route: DocRoute | None = None,
+    response_lang: str | None = None,
 ) -> list[RetrievedDoc]:
-    """거리 + 제출서류·확장어·doc_id 라우팅 가중."""
+    """거리 + 제출서류·확장어·doc_id 라우팅·응답 언어 일치 가중."""
 
     def score(d: RetrievedDoc) -> tuple[int, float]:
         boost = 0
@@ -108,6 +110,9 @@ def _rerank_heuristic(
                 boost += _BOOST_DOC_ID_MATCH
             elif intent == "document_list":
                 boost += _PENALTY_DOC_ID_MISMATCH
+
+        if response_lang and d.lang == response_lang:
+            boost += _BOOST_LANG_MATCH
 
         dist = d.distance if d.distance is not None else 1.0
         return (boost, dist)
@@ -218,19 +223,21 @@ class Retriever:
             return RetrievalResult(docs=[], band="none", best_distance=None)
 
         message = ""
+        response_lang = "ko"
         if isinstance(query, Query):
             q_obj = query
             search_q = build_search_text(q_obj)
             intent = q_obj.intent
             expanded = q_obj.expanded_terms
             message = q_obj.message
+            response_lang = q_obj.response_lang
         else:
             intent = intent or classify_intent(query)
             search_q = expand_query(query, intent)
             expanded = []
             message = query
 
-        route = resolve_doc_route(message)
+        route = resolve_doc_route(message, response_lang)
 
         q_emb = self._embedder_model().encode([search_q], show_progress_bar=False).tolist()
         n = min(max(k * 2, k), self._collection.count())
@@ -242,7 +249,7 @@ class Retriever:
             routed = self._query_collection(q_emb, routed_n, doc_id=route.doc_id)
             out = _merge_docs(out, routed)
 
-        out = _rerank_heuristic(out, intent, expanded, route)
+        out = _rerank_heuristic(out, intent, expanded, route, response_lang)
 
         if intent == "document_list":
             out = _narrow_document_list(out, route)

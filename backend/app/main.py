@@ -184,7 +184,7 @@ def chat(req: ChatRequest):
     response_lang = q.response_lang
 
     # doc_id 라우팅 성공 시 md 전문 → LLM (Chroma 미사용)
-    route = resolve_doc_route(q.message)
+    route = resolve_doc_route(q.message, response_lang)
     if route:
         source = load_source_by_doc_id(route.doc_id)
         if source:
@@ -231,14 +231,17 @@ def _build_answer(
     """(answer_text, citations용 청크, model_used).
 
     document_list intent: verbatim_composer로 LLM 없이 서류 목록 추출 시도.
-    추출 실패 시 LLM fallback.
+    번역이 없는 경로이므로 응답 언어와 일치하는 문서가 있을 때만 시도하고,
+    없거나 추출 실패 시 LLM fallback(번역 가능)으로 넘어간다.
     """
     intent = classify_intent(query)
 
     if intent == "document_list":
-        verbatim = compose_verbatim_answer(docs, intent, lang)
-        if verbatim:
-            return verbatim, docs, False
+        lang_matched_docs = [d for d in docs if d.lang == lang]
+        if lang_matched_docs:
+            verbatim = compose_verbatim_answer(lang_matched_docs, intent, lang)
+            if verbatim:
+                return verbatim, lang_matched_docs, False
 
     answer, model_used = generate_answer(query, docs, lang, intent=intent)
     if answer == unknown_message(lang):

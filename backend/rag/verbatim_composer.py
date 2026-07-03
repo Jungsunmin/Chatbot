@@ -17,6 +17,14 @@ _LABELS: dict[str, dict[str, str]] = {
     "ja": {"source": "出典"},
 }
 
+# document_list 답변 고정 도입부 — 매번 동일한 문장으로 시작
+_DOCUMENT_LIST_INTRO: dict[str, str] = {
+    "ko": "사용자가 요청하신 서류는 다음과 같습니다.",
+    "en": "The documents you requested are as follows:",
+    "zh": "您所需的材料如下：",
+    "ja": "ご希望の書類は以下の通りです。",
+}
+
 
 def _is_fee_line(text: str) -> bool:
     """수수료 안내 줄 — document_list에서 제외."""
@@ -121,7 +129,10 @@ def compose_verbatim_answer(
         return None
 
     primary = selected[0]
-    header = _default_header(intent, primary.section_title or "", lang)
+    if intent == "document_list":
+        header = _DOCUMENT_LIST_INTRO.get(lang, _DOCUMENT_LIST_INTRO["en"])
+    else:
+        header = _default_header(intent, primary.section_title or "", lang)
     source = primary.title or primary.source_id
 
     return _format_answer(header, all_lines, source, lang)

@@ -79,3 +79,10 @@ def test_procedure_verbatim():
 
 def test_intent_classify_registration_documents():
     assert classify_intent("외국인 등록에 필요한 서류가 무엇인지") == "document_list"
+
+
+def test_document_list_uses_fixed_intro_sentence():
+    docs = [_doc(_ALIEN_REG_DOCS)]
+    answer = compose_verbatim_answer(docs, "document_list", "ko")
+    assert answer is not None
+    assert answer.startswith("사용자가 요청하신 서류는 다음과 같습니다.")
