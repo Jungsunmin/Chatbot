@@ -11,6 +11,7 @@ services:
       - ./backend/.env
     volumes:
       - ./backend/data:/app/data
+      - huggingface_cache:/root/.cache/huggingface
     deploy:
       resources:
         reservations:
@@ -18,3 +19,6 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
+
+volumes:
+  huggingface_cache:
