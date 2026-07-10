@@ -253,5 +253,12 @@ def _build_answer(
 @app.post("/admin/reindex")
 def reindex():
     """개발용: 인덱스 재구축."""
+    global retriever
+
+    if retriever is not None:
+        retriever.shutdown()
+
     n = build_index(force=True)
+    retriever = Retriever()
+
     return {"indexed_chunks": n}
