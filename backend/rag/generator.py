@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import re
 
 from rag.answer_composer import unknown_message
 from rag.indexer import LoadedSource
@@ -13,6 +14,8 @@ logger = logging.getLogger(__name__)
 
 _UNKNOWN_MARKER = "__UNKNOWN__"
 _MAX_NEW_TOKENS = 768
+_THINK_BLOCK_RE = re.compile(r"<think\b[^>]*>.*?</think>", re.IGNORECASE | re.DOTALL)
+_OPEN_THINK_RE = re.compile(r"<think\b[^>]*>.*\Z", re.IGNORECASE | re.DOTALL)
 
 
 def _is_unknown_output(text: str) -> bool:
@@ -65,6 +68,13 @@ def _dedup_output_lines(text: str) -> str:
     return "\n".join(out)
 
 
+def _strip_thinking(text: str) -> str:
+    """Remove model reasoning tags before returning an answer to clients."""
+    without_closed_blocks = _THINK_BLOCK_RE.sub("", text)
+    without_open_block = _OPEN_THINK_RE.sub("", without_closed_blocks)
+    return without_open_block.strip()
+
+
 def _run_llm(system: str, user: str) -> str | None:
     """LLM 호출 — 성공 시 답변 문자열, 실패 시 None."""
     try:
@@ -74,7 +84,6 @@ def _run_llm(system: str, user: str) -> str | None:
 
         model, tokenizer = get_model_and_tokenizer()
 
-        # MPS(Apple Silicon) 부동소수점 비결정성 완화 — 동일 질문 동일 답변
         torch.manual_seed(42)
         if torch.backends.mps.is_available():
             torch.mps.manual_seed(42)
@@ -93,7 +102,7 @@ def _run_llm(system: str, user: str) -> str | None:
             **inputs,
             max_new_tokens=_MAX_NEW_TOKENS,
             do_sample=False,
-            temperature=1.0,  # do_sample=False 시 무시되나 일부 구현에서 명시 필요
+            temperature=1.0,
         )
         new_tokens = outputs[0][inputs["input_ids"].shape[1] :]
         raw = tokenizer.decode(new_tokens, skip_special_tokens=True).strip()
@@ -107,6 +116,9 @@ def _finalize_answer(raw: str | None, lang: str) -> tuple[str, bool]:
     """LLM 출력 → (답변, model_used)."""
     if not raw:
         return unknown_message(lang), False
+    raw = _strip_thinking(raw)
+    if not raw:
+        return unknown_message(lang), True
     if _is_unknown_output(raw):
         logger.warning("LLM returned UNKNOWN marker")
         return unknown_message(lang), True
@@ -149,7 +161,7 @@ def generate_answer(
     검색 청크 fallback — 동일 고정 프롬프트로 LLM 답변.
     Returns: (answer_text, model_used)
     """
-    del intent, user_confirmed  # 하위 호환용 인자, 미사용
+    del intent, user_confirmed
     if not docs:
         return unknown_message(lang), False
 
