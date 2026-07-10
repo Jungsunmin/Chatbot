@@ -79,26 +79,47 @@ _ROUTE_RULES: list[tuple[str, dict[str, str], str]] = [
     ),
     # 건강보험
     (
-        r"건강보험|국민건강보험|보험료"
-        r"|health\s*insurance|national\s*health\s*insurance|\bnhi\b|insurance\s*premium",
-        {"en": "health-insurance-for-international-students"},
+        r"건강보험|국민건강보험|보험료|보험"
+        r"|health\s*insurance|national\s*health\s*insurance|\bnhi\b|insurance\s*premium"
+        r"|健康保险|国民健康保险|保险费"
+        r"|健康保険|国民健康保険|保険料",
+        {
+            "ko": "health-insurance-for-international-students",
+            "en": "health-insurance-for-international-students",
+            "zh": "health-insurance-for-international-students",
+            "ja": "health-insurance-for-international-students",
+        },
         "health_insurance",
     ),
     # 기숙사 신청
     (
-        r"기숙사|숙소\s*신청"
-        r"|dormitory|dorm\s*application|housing\s*application|kul?\s*house",
-        {"en": "dormitory-application"},
+        r"기숙사|생활관|숙소\s*신청|기숙사\s*신청"
+        r"|dormitory|dorm\s*application|housing\s*application|kul?\s*house"
+        r"|宿舍|宿舍申请|住宿申请"
+        r"|寮|学生寮|寮申請|宿舎",
+        {
+            "ko": "dormitory-application",
+            "en": "dormitory-application",
+            "zh": "dormitory-application",
+            "ja": "dormitory-application",
+        },
         "dormitory_application",
     ),
-    # 국제처 외국인학생센터 홈페이지 활용법
+   # 국제처 외국인학생센터 홈페이지 활용법
     (
-        r"국제처.*홈페이지|외국인학생센터.*홈페이지"
-        r"|international\s*student\s*center.*website|isc.*website|portal.*log.?in",
-        {"en": "international-student-center-website-user-guide"},
+        r"국제처.*홈페이지|외국인학생센터.*홈페이지|외국인학생센터|포털|홈페이지\s*사용"
+        r"|international\s*student\s*center.*website|isc.*website|portal.*log.?in"
+        r"|国际处.*网站|外国人学生中心.*网站|留学生中心.*网站|门户"
+        r"|国際処.*ホームページ|外国人学生センター.*ホームページ|留学生センター.*サイト|ポータル",
+        {
+            "ko": "international-student-center-website-user-guide",
+            "en": "international-student-center-website-user-guide",
+            "zh": "international-student-center-website-user-guide",
+            "ja": "international-student-center-website-user-guide",
+        },
         "isc_website_guide",
     ),
-]
+    ]
 
 # 외국인 등록(최초) — 변경·재발급 질문은 위 규칙에서 먼저 걸러짐
 # 접두사 매칭으로 "registeration / registrant" 등 오타·변형 허용
