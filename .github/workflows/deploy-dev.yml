@@ -12,19 +12,58 @@ jobs:
     steps:
       - name: Deploy to server
         run: |
+          set -eux
+
+          echo "STEP 1: Prepare SSH key"
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
+          ls -l ~/.ssh/deploy_key
 
-          ssh-keyscan -p "${{ secrets.SSH_PORT }}" "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
+          echo "STEP 2: Add server to known_hosts"
+          ssh-keyscan -T 10 -p "${{ secrets.SSH_PORT }}" "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
 
+          echo "STEP 3: Test SSH connection"
+          ssh -i ~/.ssh/deploy_key -p "${{ secrets.SSH_PORT }}" \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
+            "echo SSH_CONNECTED && whoami && pwd"
+
+          echo "STEP 4: Deploy on server"
           ssh -i ~/.ssh/deploy_key -p "${{ secrets.SSH_PORT }}" \
             "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" << EOF
-              set -e
+              set -eux
+
+              echo "REMOTE STEP 1: connected"
+              whoami
+              pwd
+
+              echo "REMOTE STEP 2: move to deploy path"
               cd "${{ secrets.DEPLOY_PATH }}"
+              pwd
+              ls -la
+
+              echo "REMOTE STEP 3: check git"
+              git status
+              git remote -v
+              git branch -a
+
+              echo "REMOTE STEP 4: fetch dev"
               git fetch origin dev
+
+              echo "REMOTE STEP 5: reset to origin/dev"
               git reset --hard origin/dev
+
+              echo "REMOTE STEP 6: check docker"
+              docker compose version
+
+              echo "REMOTE STEP 7: docker compose down"
               docker compose down
+
+              echo "REMOTE STEP 8: docker compose up build"
               docker compose up -d --build
+
+              echo "REMOTE STEP 9: docker image prune"
               docker image prune -f
+
+              echo "REMOTE STEP 10: done"
           EOF
