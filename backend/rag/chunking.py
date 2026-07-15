@@ -4,9 +4,9 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-# 소제목 경계 (가이드북 HTML ingest 형식)
+# 소제목 경계 — 마크다운 ### 헤더(레터 유무 무관) 또는 단독 "A./B./C." 텍스트 줄
 _SUBSECTION_SPLIT = re.compile(
-    r"\n(?=(?:다\.|나\.|라\.|가\.|마\.|바\.)\s+[^\n])"
+    r"\n(?=(?:###\s+\S|[A-Z]\.\s+\S))"
 )
 
 

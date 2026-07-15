@@ -1,6 +1,7 @@
 """Chroma 기반 문서 검색 + 휴리스틱 rerank + 관련도 밴드."""
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import Literal
 
@@ -65,9 +66,15 @@ def _doc_from_meta(text: str, meta: dict, dist: float | None) -> RetrievedDoc:
     )
 
 
+_SUBMISSION_SECTION_RE = re.compile(
+    r"제출서류|제출\s*서류|기본\s*제출서류|required\s*document|documents?\s*required",
+    re.I,
+)
+
+
 def _is_submission_section(doc: RetrievedDoc) -> bool:
     title = doc.section_title or ""
-    return "제출서류" in title or "제출 서류" in title or "기본 제출서류" in title
+    return bool(_SUBMISSION_SECTION_RE.search(title))
 
 
 def _merge_docs(primary: list[RetrievedDoc], extra: list[RetrievedDoc]) -> list[RetrievedDoc]:
@@ -96,9 +103,7 @@ def _rerank_heuristic(
         boost = 0
         blob = f"{d.section_title or ''} {d.text[:500]}"
 
-        if intent == "document_list" and (
-            "제출서류" in blob or "제출 서류" in blob or "기본 제출서류" in blob
-        ):
+        if intent == "document_list" and _SUBMISSION_SECTION_RE.search(blob):
             boost += _BOOST_SUBMISSION_SECTION
 
         for term in expanded_terms:

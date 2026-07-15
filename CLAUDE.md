@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-건국대학교 외국인 유학생용 RAG FAQ 챗봇 (Visa Phase 1). Korean-curated markdown files are the single source of truth (SSOT) for all visa/immigration guidance.
+건국대학교 외국인 유학생용 RAG FAQ 챗봇 (Visa Phase 1). Curated markdown files (currently authored in English, per-doc `curated_language`) are the single source of truth (SSOT) for all visa/immigration guidance, translated at answer time via `translation_strategy: answer_time_translation`.
 
 ## Commands
 
@@ -83,7 +83,7 @@ resolve_doc_route()    ← keyword rules → specific doc_id
 | `rag/query_pipeline.py` | Builds `Query` dataclass: detects language, resolves `response_lang`, appends `_KO_BRIDGE` Korean admin keywords for non-Korean queries. |
 | `rag/retriever.py` | Chroma query + heuristic rerank. For `document_list` intent, narrows to single submission-section chunk from the dominant `doc_id`. |
 | `rag/indexer.py` | Reads `data/sources/**/*.md`, parses YAML frontmatter, calls `chunk_markdown()`, embeds, writes to Chroma. |
-| `rag/chunking.py` | Splits on `##` headers and Korean subsection markers (`가./나./라.`). Produces `Chunk.text` (display) and `Chunk.embed_text` (contextual prefix + text for embedding). |
+| `rag/chunking.py` | Splits on `##` headers, then on `###` markdown sub-headers or standalone `A./B./C.` lettered lines. Produces `Chunk.text` (display) and `Chunk.embed_text` (contextual prefix + text for embedding). |
 | `rag/generator.py` | Calls HuggingFace model via `model_loader`. Outputs `__UNKNOWN__` marker when query is out-of-scope. |
 | `rag/model_loader.py` | Singleton LLM loader. `CHATBOT_PRELOAD_MODELS=true` loads at startup; otherwise lazy on first `/chat`. |
 | `rag/prompt_templates.py` | 5-section structured prompt (ko/en/zh/ja). `build_system_prompt()` + `build_user_prompt()` used by both answer paths. |
@@ -107,7 +107,7 @@ resolve_doc_route()    ← keyword rules → specific doc_id
 
 ### Source Documents
 
-All source docs live in `backend/data/sources/visa/` as `<doc_id>_ko.md`.
+All source docs live in `backend/data/sources/visa/` as `<doc_id>_<lang>.md` (currently `_en.md` — content is curated in English and translated at answer time; filename language suffix is cosmetic only, since `doc_id`/language are read from frontmatter, not the filename).
 
 Frontmatter fields that matter:
 - `doc_id` — must match the `doc_id` string used in `_ROUTE_RULES` in `doc_router.py`
@@ -149,7 +149,7 @@ Single-file app (`mobile/App.tsx`) + `src/api/client.ts` (fetch wrapper) + `src/
 
 ## Adding a New Document
 
-1. Create `backend/data/sources/visa/<doc_id>_ko.md` with YAML frontmatter (`doc_id`, `source_title`, `source_url`, `type`).
+1. Create `backend/data/sources/visa/<doc_id>_<lang>.md` (e.g. `_en.md`) with YAML frontmatter (`doc_id`, `source_title`, `source_url`, `type`, `curated_language`).
 2. Add a routing rule to `_ROUTE_RULES` in `rag/doc_router.py` — more specific patterns must go above general ones.
 3. Re-run `python scripts/build_index.py` (or `POST /admin/reindex`).
 4. Add tests in `tests/test_doc_router.py` and `tests/test_retriever_routing.py`.

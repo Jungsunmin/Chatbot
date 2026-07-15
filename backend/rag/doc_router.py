@@ -19,7 +19,12 @@ _ROUTE_RULES: list[tuple[str, dict[str, str], str]] = [
     (
         r"재발급|분실|훼손|재\s*발급"
         r"|reissue|re[-\s]*issue|lost.*card|card.*lost|damaged.*card",
-        {"ko": "alien-registration-card-reissue"},
+        {
+            "ko": "stay-visa-alien-registration-card",
+            "en": "stay-visa-alien-registration-card",
+            "zh": "stay-visa-alien-registration-card",
+            "ja": "stay-visa-alien-registration-card",
+        },
         "arc_reissue",
     ),
     # 체류지/주소 변경 신고
@@ -27,7 +32,12 @@ _ROUTE_RULES: list[tuple[str, dict[str, str], str]] = [
         r"체류지\s*변경|주소\s*변경|주소\s*신고"
         r"|address\s*change|change.*address|notify.*address|update.*address"
         r"|new\s*address|move.*address",
-        {"ko": "address-change-report"},
+        {
+            "ko": "stay-visa-alien-registration-card",
+            "en": "stay-visa-alien-registration-card",
+            "zh": "stay-visa-alien-registration-card",
+            "ja": "stay-visa-alien-registration-card",
+        },
         "address_change",
     ),
     # 인적사항/정보 변경 신고
@@ -35,7 +45,12 @@ _ROUTE_RULES: list[tuple[str, dict[str, str], str]] = [
         r"정보\s*변경|인적\s*사항|성명\s*변경|체류자격\s*변경"
         r"|name\s*change|information\s*change|update\s*registration\s*info"
         r"|change.*registration.*info|update.*alien.*regist",
-        {"ko": "alien-registration-change-report"},
+        {
+            "ko": "stay-visa-alien-registration-card",
+            "en": "stay-visa-alien-registration-card",
+            "zh": "stay-visa-alien-registration-card",
+            "ja": "stay-visa-alien-registration-card",
+        },
         "arc_information_change",
     ),
     # 체류 연장 — "체류지 연장"(구어체), "extend my stay / stay renewal / visa extension" 등 포함
@@ -44,20 +59,35 @@ _ROUTE_RULES: list[tuple[str, dict[str, str], str]] = [
         r"|stay\s*extension|extend.*stay|stay.*extend"
         r"|extend.*period|stay.*period.*extend|visa.*extens"
         r"|stay.*renew|renewal.*stay|renew.*stay",
-        {"ko": "stay-extension"},
+        {
+            "ko": "stay-visa-alien-registration-card",
+            "en": "stay-visa-alien-registration-card",
+            "zh": "stay-visa-alien-registration-card",
+            "ja": "stay-visa-alien-registration-card",
+        },
         "stay_extension",
     ),
     # 시간제 취업 허가
     (
         r"시간제|아르바이트"
         r"|part[-\s]*time|work\s*permit|campus\s*job|student\s*work",
-        {"ko": "part-time-work-permit"},
+        {
+            "ko": "stay-visa-alien-registration-card",
+            "en": "stay-visa-alien-registration-card",
+            "zh": "stay-visa-alien-registration-card",
+            "ja": "stay-visa-alien-registration-card",
+        },
         "part_time_work",
     ),
     # 재입국 허가
     (
         r"재입국|re[-\s]*entry|reentry",
-        {"ko": "re-entry-permit"},
+        {
+            "ko": "stay-visa-alien-registration-card",
+            "en": "stay-visa-alien-registration-card",
+            "zh": "stay-visa-alien-registration-card",
+            "ja": "stay-visa-alien-registration-card",
+        },
         "re_entry_permit",
     ),
     # 하이코리아 방문 예약
@@ -66,7 +96,12 @@ _ROUTE_RULES: list[tuple[str, dict[str, str], str]] = [
         r"|hikorea.*visit|visit.*hikorea|book.*hikorea|hikorea.*book"
         r"|hikorea.*appointment|make.*appointment.*hikorea"
         r"|schedule.*hikorea|hikorea.*reserv",
-        {"ko": "hikorea-visit-reservation"},
+        {
+            "ko": "stay-visa-alien-registration-card",
+            "en": "stay-visa-alien-registration-card",
+            "zh": "stay-visa-alien-registration-card",
+            "ja": "stay-visa-alien-registration-card",
+        },
         "hikorea_visit_reservation",
     ),
     # 하이코리아 온라인 전자민원
@@ -74,7 +109,12 @@ _ROUTE_RULES: list[tuple[str, dict[str, str], str]] = [
         r"전자\s*민원|온라인\s*신청|online\s*civil"
         r"|hikorea.*online|online.*hikorea|electronic.*application"
         r"|e[-\s]*application|online.*civil.*application",
-        {"ko": "hikorea-online-civil-application"},
+        {
+            "ko": "stay-visa-alien-registration-card",
+            "en": "stay-visa-alien-registration-card",
+            "zh": "stay-visa-alien-registration-card",
+            "ja": "stay-visa-alien-registration-card",
+        },
         "hikorea_online_civil_application",
     ),
     # 건강보험
@@ -133,7 +173,7 @@ _ALIEN_REGISTRATION_EXCLUDE_RE = re.compile(
     re.I,
 )
 _ALIEN_REGISTRATION_DOC_IDS: dict[str, str] = {
-    "ko": "alien-registration",
+    "ko": "stay-visa-alien-registration-card",
     "en": "stay-visa-alien-registration-card",
 }
 

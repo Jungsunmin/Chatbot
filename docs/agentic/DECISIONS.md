@@ -1,6 +1,15 @@
 # DECISIONS.md
 
-확정된 결정만 기록. 최종 갱신: 2026-06-04
+확정된 결정만 기록. 최종 갱신: 2026-07-15
+
+---
+
+## 2026-07-15 - Visa 소스 curation 언어 전환 (한국어 → 영어) 및 문서 병합
+
+- **Decision**: `backend/data/sources/visa/`의 소스 md 10개(개별 `<doc_id>_ko.md`, 한국어 콘텐츠)를 폐기하고, 영어로 curation된 문서 4개(`<doc_id>_en.md`, `curated_language: "en"`, `translation_strategy: "answer_time_translation"`)로 교체. 외국인등록·재발급·정보변경·체류연장·재입국·방문예약·온라인민원·시간제취업 8개 세부 주제는 `stay-visa-alien-registration-card` 문서 하나로 병합.
+- **Reason**: 콘텐츠 curation 워크플로가 영어 원본 작성 후 답변 시점에 LLM이 번역하는 방식으로 전환됨. 8개로 흩어져 있던 외국인등록 관련 주제를 실제 운영 가이드북 구조(하나의 통합 페이지)에 맞춰 병합.
+- **Alternatives considered**: 기존처럼 한국어 원본 + 주제별 파일 분리 유지.
+- **Impact**: `rag/chunking.py`의 `_SUBSECTION_SPLIT`을 한국어 가나다 마커 대신 마크다운 `###` 헤더/영문 `A.`~`Z.` 텍스트 줄 인식으로 교체. `rag/retriever.py`의 `_is_submission_section`에 영문 "required document" 패턴 추가. `rag/doc_router.py`의 8개 라우팅 규칙과 `_ALIEN_REGISTRATION_DOC_IDS`가 전부 `stay-visa-alien-registration-card`를 가리키도록 재매핑. 관련 테스트(`test_doc_router.py`, `test_retriever_routing.py`, `test_source_loader.py`) 갱신.
 
 ---
 

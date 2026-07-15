@@ -19,12 +19,12 @@ def test_registration_documents_retrieves_correct_doc():
     res = retriever.search_with_band(q)
     assert res.docs, "검색 결과가 있어야 함"
     top = res.docs[0]
-    assert top.doc_id == "alien-registration"
-    assert "제출" in (top.section_title or "") or "외국인등록신청서" in top.text
-    assert "외국인등록신청서" in top.text
+    assert top.doc_id == "stay-visa-alien-registration-card"
+    assert "Required Document" in (top.section_title or "") or "Alien Registration Application Form" in top.text
 
 
-def test_address_change_query_different_doc():
+def test_address_change_query_same_merged_doc():
+    """주소 변경 신고는 외국인등록 문서에 병합돼 동일 doc_id로 라우팅됨."""
     retriever = Retriever()
     if retriever._collection.count() == 0:
         return
@@ -32,4 +32,4 @@ def test_address_change_query_different_doc():
     q = build_query("체류지 변경할 때 필요한 서류", "ko")
     res = retriever.search_with_band(q)
     assert res.docs
-    assert res.docs[0].doc_id == "address-change-report"
+    assert res.docs[0].doc_id == "stay-visa-alien-registration-card"
