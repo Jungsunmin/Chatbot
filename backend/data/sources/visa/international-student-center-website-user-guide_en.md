@@ -5,6 +5,8 @@ source_title: "International Student Center Website User Guide"
 curated_language: "en"
 category: "student_services"
 subcategory: "website_user_guide"
+route_patterns:
+  - '국제처.*홈페이지|외국인학생센터.*홈페이지|외국인학생센터|포털|홈페이지\s*사용|international\s*student\s*center.*website|isc.*website|portal.*log.?in|国际处.*网站|外国人学生中心.*网站|留学生中心.*网站|门户|国際処.*ホームページ|外国人学生センター.*ホームページ|留学生センター.*サイト|ポータル'
 target_audience: "international_students"
 onboarding_stage: "pre"
 sensitive_topic: "none"

@@ -174,6 +174,10 @@ class Retriever:
         )
         self._collection = self._client.get_or_create_collection(CHROMA_COLLECTION)
 
+    def count(self) -> int:
+        """인덱싱된 청크 수."""
+        return self._collection.count()
+
     def embedder_is_ready(self) -> bool:
         """임베딩 모델이 메모리에 로드됐는지."""
         return self._embedder is not None
@@ -222,6 +226,7 @@ class Retriever:
         query: str | Query,
         top_k: int | None = None,
         intent: QueryIntent | None = None,
+        route: DocRoute | None = None,
     ) -> RetrievalResult:
         k = top_k or TOP_K
         if self._collection.count() == 0:
@@ -242,7 +247,8 @@ class Retriever:
             expanded = []
             message = query
 
-        route = resolve_doc_route(message, response_lang)
+        if route is None:
+            route = resolve_doc_route(message, response_lang)
 
         q_emb = self._embedder_model().encode([search_q], show_progress_bar=False).tolist()
         n = min(max(k * 2, k), self._collection.count())

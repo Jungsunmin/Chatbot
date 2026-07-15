@@ -34,6 +34,26 @@ def _embed_prefix(doc_title: str, section_title: str) -> str:
     return f"{doc_title}: "
 
 
+_SENTENCE_BOUNDARIES = (". ", "! ", "? ", ".\n", "!\n", "?\n", "\n\n")
+
+
+def _find_break_point(text: str, max_chars: int) -> int:
+    """max_chars 이내에서 문장 종결/공백 경계를 찾아 자를 위치(그 지점 포함, exclusive) 반환.
+    너무 이른 경계(전체의 40% 미만)나 적당한 경계가 없으면 max_chars에서 하드 컷."""
+    window = text[:max_chars]
+    best = -1
+    for sep in _SENTENCE_BOUNDARIES:
+        idx = window.rfind(sep)
+        if idx != -1:
+            best = max(best, idx + len(sep))
+    if best >= max_chars * 0.4:
+        return best
+    idx = window.rfind(" ")
+    if idx != -1 and idx + 1 >= max_chars * 0.4:
+        return idx + 1
+    return max_chars
+
+
 def _emit_pieces(
     text: str,
     source_id: str,
@@ -49,7 +69,8 @@ def _emit_pieces(
         return
     prefix = _embed_prefix(page_title, section_title)
     while len(block) > max_chars:
-        piece = block[:max_chars]
+        cut = _find_break_point(block, max_chars)
+        piece = block[:cut].rstrip()
         out.append(
             Chunk(
                 text=piece,
@@ -60,7 +81,7 @@ def _emit_pieces(
                 section_title=section_title,
             )
         )
-        block = block[max_chars:]
+        block = block[cut:].lstrip()
     if block:
         out.append(
             Chunk(

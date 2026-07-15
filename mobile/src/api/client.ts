@@ -4,7 +4,7 @@
 import { resolveApiBase } from "./resolveApiBase";
 
 export type Lang = "ko" | "en" | "zh" | "ja";
-export type AnswerStatus = "answered" | "confirm_needed" | "unknown";
+export type AnswerStatus = "answered" | "unknown";
 
 export interface Citation {
   source_id: string;
@@ -21,15 +21,11 @@ export interface ChatResponse {
   answer: string;
   citations: Citation[];
   model_used: boolean;
-  pending_id?: string | null;
-  confirm_prompt?: string | null;
 }
 
 export interface ChatPayload {
-  message?: string;
+  message: string;
   lang: Lang;
-  confirm?: "yes" | "no";
-  pending_id?: string;
 }
 
 async function postChatBody(body: ChatPayload): Promise<ChatResponse> {
@@ -61,5 +57,17 @@ export async function checkHealth(): Promise<boolean> {
     return res.ok;
   } catch {
     return false;
+  }
+}
+
+/** 서버가 허용하는 최대 메시지 길이. 조회 실패 시 null(호출부에서 폴백값 사용). */
+export async function fetchMaxQueryLength(): Promise<number | null> {
+  try {
+    const res = await fetch(`${getApiBaseUrl()}/health`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return typeof data.max_query_length === "number" ? data.max_query_length : null;
+  } catch {
+    return null;
   }
 }

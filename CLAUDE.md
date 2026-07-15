@@ -78,7 +78,7 @@ resolve_doc_route()    ← keyword rules → specific doc_id
 
 | Module | Role |
 |---|---|
-| `rag/doc_router.py` | Keyword regex → `DocRoute(doc_id, subcategory)`. More specific patterns listed first. |
+| `rag/doc_router.py` | Keyword regex → `DocRoute(doc_id, subcategory)`. Rules are built dynamically from each source's `route_patterns` frontmatter (via `list_sources()`), sorted by `route_priority` — not hardcoded. Cached; call `refresh_route_rules()` after reindexing. |
 | `rag/intent.py` | Classifies query as `document_list / procedure / deadline / general`. Affects reranking and chunk narrowing. |
 | `rag/query_pipeline.py` | Builds `Query` dataclass: detects language, resolves `response_lang`, appends `_KO_BRIDGE` Korean admin keywords for non-Korean queries. |
 | `rag/retriever.py` | Chroma query + heuristic rerank. For `document_list` intent, narrows to single submission-section chunk from the dominant `doc_id`. |
@@ -146,12 +146,14 @@ Single-file app (`mobile/App.tsx`) + `src/api/client.ts` (fetch wrapper) + `src/
 | `CHATBOT_MAX_QUERY_LENGTH` | `300` | Max characters accepted in `ChatRequest.message` |
 | `CHATBOT_DISTANCE_HIGH_MAX` | `0.35` | High-band ceiling |
 | `CHATBOT_DISTANCE_LOW_MAX` | `0.55` | Medium-band ceiling (above = no answer) |
+| `CHATBOT_ADMIN_TOKEN` | `""` (unset) | If set, `/admin/reindex` requires a matching `X-Admin-Token` header (403 otherwise). Unset = open, matching the local dev workflow above. Set this before deploying. |
+| `CHATBOT_CORS_ORIGINS` | `*` | Comma-separated allowed origins for CORS. Default allows all (credentials are always off, so this is spec-valid); set explicit origins for production. |
 
 ## Adding a New Document
 
 1. Create `backend/data/sources/visa/<doc_id>_<lang>.md` (e.g. `_en.md`) with YAML frontmatter (`doc_id`, `source_title`, `source_url`, `type`, `curated_language`).
-2. Add a routing rule to `_ROUTE_RULES` in `rag/doc_router.py` — more specific patterns must go above general ones.
-3. Re-run `python scripts/build_index.py` (or `POST /admin/reindex`).
+2. Add `route_patterns` (list of regex strings) to the same frontmatter so direct routing can reach it — no code change needed. Optional `route_exclude_patterns` (regexes that suppress a match) and `route_priority` (int, lower = checked first; default 100, for resolving overlaps across documents) are also supported. `doc_router.py` builds its routing table from `list_sources()` at startup/reindex — it has no hardcoded rules to edit.
+3. Re-run `python scripts/build_index.py` (or `POST /admin/reindex`, which also refreshes routing rules).
 4. Add tests in `tests/test_doc_router.py` and `tests/test_retriever_routing.py`.
 
 ## Agentic Workflow

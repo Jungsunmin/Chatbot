@@ -15,6 +15,7 @@ import {
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import {
   checkHealth,
+  fetchMaxQueryLength,
   getApiBaseUrl,
   sendChat,
   type ChatResponse,
@@ -41,8 +42,8 @@ const LANGS: { code: Lang; label: string }[] = [
   { code: "ja", label: "日本語" },
 ];
 
-// 백엔드 CHATBOT_MAX_QUERY_LENGTH 기본값과 동일 — 두 시스템이 별도라 자동 동기화되지 않음
-const MAX_MESSAGE_LENGTH = 300;
+// 서버 조회 실패 시 폴백값 — 실제 상한은 /health의 max_query_length로 동기화됨
+const DEFAULT_MAX_MESSAGE_LENGTH = 300;
 const LENGTH_WARNING_THRESHOLD = 30;
 
 export default function App() {
@@ -61,12 +62,19 @@ function AppContent() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [maxMessageLength, setMaxMessageLength] = useState(DEFAULT_MAX_MESSAGE_LENGTH);
 
   const s = t(lang);
 
   useEffect(() => {
     checkHealth().then(setApiOk);
   }, [screen]);
+
+  useEffect(() => {
+    fetchMaxQueryLength().then((n) => {
+      if (n) setMaxMessageLength(n);
+    });
+  }, []);
 
   // Safari 복귀 후 API 상태만 다시 확인 (화면은 유지)
   useEffect(() => {
@@ -225,9 +233,9 @@ function AppContent() {
           )}
           ListEmptyComponent={<Text style={styles.empty}>{s.placeholder}</Text>}
         />
-        {input.length >= MAX_MESSAGE_LENGTH - LENGTH_WARNING_THRESHOLD && (
+        {input.length >= maxMessageLength - LENGTH_WARNING_THRESHOLD && (
           <Text style={styles.lengthCounter}>
-            {input.length}/{MAX_MESSAGE_LENGTH}
+            {input.length}/{maxMessageLength}
           </Text>
         )}
         <View style={styles.inputRow}>
@@ -238,7 +246,7 @@ function AppContent() {
             value={input}
             onChangeText={setInput}
             editable={!loading}
-            maxLength={MAX_MESSAGE_LENGTH}
+            maxLength={maxMessageLength}
           />
           <Pressable style={styles.sendBtn} onPress={postChat} disabled={loading}>
             {loading ? (

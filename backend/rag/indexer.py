@@ -27,6 +27,9 @@ class LoadedSource:
     category: str = ""
     sensitive_topic: str = "general"
     preserve_terms: list[str] = field(default_factory=list)
+    route_patterns: list[str] = field(default_factory=list)
+    route_exclude_patterns: list[str] = field(default_factory=list)
+    route_priority: int = 100
 
 
 def _lang_from_path(path: Path) -> str:
@@ -62,6 +65,12 @@ def _load_sources() -> list[LoadedSource]:
         preserve = meta.get("preserve_terms") or []
         if isinstance(preserve, str):
             preserve = [preserve]
+        route_patterns = meta.get("route_patterns") or []
+        if isinstance(route_patterns, str):
+            route_patterns = [route_patterns]
+        route_exclude_patterns = meta.get("route_exclude_patterns") or []
+        if isinstance(route_exclude_patterns, str):
+            route_exclude_patterns = [route_exclude_patterns]
         items.append(
             LoadedSource(
                 source_id=source_id,
@@ -75,6 +84,9 @@ def _load_sources() -> list[LoadedSource]:
                 category=str(meta.get("category", "") or ""),
                 sensitive_topic=str(meta.get("sensitive_topic", "general") or "general"),
                 preserve_terms=list(preserve),
+                route_patterns=list(route_patterns),
+                route_exclude_patterns=list(route_exclude_patterns),
+                route_priority=int(meta.get("route_priority", 100) or 100),
             )
         )
     return items

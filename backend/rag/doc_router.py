@@ -1,8 +1,20 @@
-"""질문 → doc_id/subcategory 라우팅 (규칙 기반, 구체적 패턴 우선)."""
+"""질문 → doc_id/subcategory 라우팅.
+
+규칙은 소스 md의 frontmatter(`route_patterns`)에서 동적으로 읽어온다 — 하드코딩 리스트가
+아니므로 새 문서를 추가/변경할 때 이 파일을 고칠 필요가 없다. `route_priority`(낮을수록
+먼저 매칭)로 문서 간 순서를, `route_exclude_patterns`로 문서 내 예외를 표현한다.
+"""
 from __future__ import annotations
 
+import logging
 import re
 from dataclasses import dataclass
+
+from rag.indexer import list_sources
+
+logger = logging.getLogger(__name__)
+
+_SUPPORTED_LANGS = ("ko", "en", "zh", "ja")
 
 
 @dataclass(frozen=True)
@@ -11,171 +23,63 @@ class DocRoute:
     subcategory: str
 
 
-# (정규식, {언어: doc_id}, subcategory) — 위에서부터 먼저 매칭
-# 구체적·예외 패턴을 상위에, 일반 패턴을 하위에 배치
-# doc_id가 한 언어로만 큐레이션된 토픽은 dict에 그 언어 하나만 넣으면 됨
-_ROUTE_RULES: list[tuple[str, dict[str, str], str]] = [
-    # 재발급 / 분실 / 훼손 — 변경보다 먼저 매칭해야 함
-    (
-        r"재발급|분실|훼손|재\s*발급"
-        r"|reissue|re[-\s]*issue|lost.*card|card.*lost|damaged.*card",
-        {
-            "ko": "stay-visa-alien-registration-card",
-            "en": "stay-visa-alien-registration-card",
-            "zh": "stay-visa-alien-registration-card",
-            "ja": "stay-visa-alien-registration-card",
-        },
-        "arc_reissue",
-    ),
-    # 체류지/주소 변경 신고
-    (
-        r"체류지\s*변경|주소\s*변경|주소\s*신고"
-        r"|address\s*change|change.*address|notify.*address|update.*address"
-        r"|new\s*address|move.*address",
-        {
-            "ko": "stay-visa-alien-registration-card",
-            "en": "stay-visa-alien-registration-card",
-            "zh": "stay-visa-alien-registration-card",
-            "ja": "stay-visa-alien-registration-card",
-        },
-        "address_change",
-    ),
-    # 인적사항/정보 변경 신고
-    (
-        r"정보\s*변경|인적\s*사항|성명\s*변경|체류자격\s*변경"
-        r"|name\s*change|information\s*change|update\s*registration\s*info"
-        r"|change.*registration.*info|update.*alien.*regist",
-        {
-            "ko": "stay-visa-alien-registration-card",
-            "en": "stay-visa-alien-registration-card",
-            "zh": "stay-visa-alien-registration-card",
-            "ja": "stay-visa-alien-registration-card",
-        },
-        "arc_information_change",
-    ),
-    # 체류 연장 — "체류지 연장"(구어체), "extend my stay / stay renewal / visa extension" 등 포함
-    (
-        r"체류\s*연장|체류기간\s*연장|체류지\s*연장"
-        r"|stay\s*extension|extend.*stay|stay.*extend"
-        r"|extend.*period|stay.*period.*extend|visa.*extens"
-        r"|stay.*renew|renewal.*stay|renew.*stay",
-        {
-            "ko": "stay-visa-alien-registration-card",
-            "en": "stay-visa-alien-registration-card",
-            "zh": "stay-visa-alien-registration-card",
-            "ja": "stay-visa-alien-registration-card",
-        },
-        "stay_extension",
-    ),
-    # 시간제 취업 허가
-    (
-        r"시간제|아르바이트"
-        r"|part[-\s]*time|work\s*permit|campus\s*job|student\s*work",
-        {
-            "ko": "stay-visa-alien-registration-card",
-            "en": "stay-visa-alien-registration-card",
-            "zh": "stay-visa-alien-registration-card",
-            "ja": "stay-visa-alien-registration-card",
-        },
-        "part_time_work",
-    ),
-    # 재입국 허가
-    (
-        r"재입국|re[-\s]*entry|reentry",
-        {
-            "ko": "stay-visa-alien-registration-card",
-            "en": "stay-visa-alien-registration-card",
-            "zh": "stay-visa-alien-registration-card",
-            "ja": "stay-visa-alien-registration-card",
-        },
-        "re_entry_permit",
-    ),
-    # 하이코리아 방문 예약
-    (
-        r"방문\s*예약|visit\s*reservation"
-        r"|hikorea.*visit|visit.*hikorea|book.*hikorea|hikorea.*book"
-        r"|hikorea.*appointment|make.*appointment.*hikorea"
-        r"|schedule.*hikorea|hikorea.*reserv",
-        {
-            "ko": "stay-visa-alien-registration-card",
-            "en": "stay-visa-alien-registration-card",
-            "zh": "stay-visa-alien-registration-card",
-            "ja": "stay-visa-alien-registration-card",
-        },
-        "hikorea_visit_reservation",
-    ),
-    # 하이코리아 온라인 전자민원
-    (
-        r"전자\s*민원|온라인\s*신청|online\s*civil"
-        r"|hikorea.*online|online.*hikorea|electronic.*application"
-        r"|e[-\s]*application|online.*civil.*application",
-        {
-            "ko": "stay-visa-alien-registration-card",
-            "en": "stay-visa-alien-registration-card",
-            "zh": "stay-visa-alien-registration-card",
-            "ja": "stay-visa-alien-registration-card",
-        },
-        "hikorea_online_civil_application",
-    ),
-    # 건강보험
-    (
-        r"건강보험|국민건강보험|보험료|보험"
-        r"|health\s*insurance|national\s*health\s*insurance|\bnhi\b|insurance\s*premium"
-        r"|健康保险|国民健康保险|保险费"
-        r"|健康保険|国民健康保険|保険料",
-        {
-            "ko": "health-insurance-for-international-students",
-            "en": "health-insurance-for-international-students",
-            "zh": "health-insurance-for-international-students",
-            "ja": "health-insurance-for-international-students",
-        },
-        "health_insurance",
-    ),
-    # 기숙사 신청
-    (
-        r"기숙사|생활관|숙소\s*신청|기숙사\s*신청"
-        r"|dormitory|dorm\s*application|housing\s*application|kul?\s*house"
-        r"|宿舍|宿舍申请|住宿申请"
-        r"|寮|学生寮|寮申請|宿舎",
-        {
-            "ko": "dormitory-application",
-            "en": "dormitory-application",
-            "zh": "dormitory-application",
-            "ja": "dormitory-application",
-        },
-        "dormitory_application",
-    ),
-   # 국제처 외국인학생센터 홈페이지 활용법
-    (
-        r"국제처.*홈페이지|외국인학생센터.*홈페이지|외국인학생센터|포털|홈페이지\s*사용"
-        r"|international\s*student\s*center.*website|isc.*website|portal.*log.?in"
-        r"|国际处.*网站|外国人学生中心.*网站|留学生中心.*网站|门户"
-        r"|国際処.*ホームページ|外国人学生センター.*ホームページ|留学生センター.*サイト|ポータル",
-        {
-            "ko": "international-student-center-website-user-guide",
-            "en": "international-student-center-website-user-guide",
-            "zh": "international-student-center-website-user-guide",
-            "ja": "international-student-center-website-user-guide",
-        },
-        "isc_website_guide",
-    ),
-    ]
+@dataclass(frozen=True)
+class _RouteRule:
+    pattern: re.Pattern
+    exclude: re.Pattern | None
+    doc_ids: dict[str, str]
+    subcategory: str
+    priority: int
 
-# 외국인 등록(최초) — 변경·재발급 질문은 위 규칙에서 먼저 걸러짐
-# 접두사 매칭으로 "registeration / registrant" 등 오타·변형 허용
-# foreign(er) 모두 포함
-_ALIEN_REGISTRATION_RE = re.compile(
-    r"외국인\s*등록|외국인등록|alien\s*regist|foreign(?:er)?\s*regist",
-    re.I,
-)
-_ALIEN_REGISTRATION_EXCLUDE_RE = re.compile(
-    r"재발급|변경|재발행|reissue|change|lost|damaged",
-    re.I,
-)
-_ALIEN_REGISTRATION_DOC_IDS: dict[str, str] = {
-    "ko": "stay-visa-alien-registration-card",
-    "en": "stay-visa-alien-registration-card",
-}
+
+def _compile_or(patterns: list[str]) -> re.Pattern | None:
+    if not patterns:
+        return None
+    combined = "|".join(f"(?:{p})" for p in patterns)
+    return re.compile(combined, re.I)
+
+
+def _build_rules() -> list[_RouteRule]:
+    rules: list[_RouteRule] = []
+    for src in list_sources():
+        if not src.route_patterns:
+            continue
+        try:
+            pattern = _compile_or(src.route_patterns)
+            exclude = _compile_or(src.route_exclude_patterns)
+        except re.error as e:
+            logger.warning("Invalid route_patterns for doc_id=%s: %s", src.doc_id, e)
+            continue
+        if pattern is None:
+            continue
+        rules.append(
+            _RouteRule(
+                pattern=pattern,
+                exclude=exclude,
+                doc_ids={lang: src.doc_id for lang in _SUPPORTED_LANGS},
+                subcategory=src.doc_type or src.category or "",
+                priority=src.route_priority,
+            )
+        )
+    rules.sort(key=lambda r: r.priority)
+    logger.info("Loaded %d route rules from source frontmatter", len(rules))
+    return rules
+
+
+_rules_cache: list[_RouteRule] | None = None
+
+
+def _get_rules() -> list[_RouteRule]:
+    global _rules_cache
+    if _rules_cache is None:
+        _rules_cache = _build_rules()
+    return _rules_cache
+
+
+def refresh_route_rules() -> None:
+    """소스 변경/재인덱싱 후 라우팅 규칙 캐시를 강제로 다시 빌드."""
+    global _rules_cache
+    _rules_cache = _build_rules()
 
 
 def _pick_doc_id(doc_ids: dict[str, str], lang: str) -> str | None:
@@ -191,15 +95,12 @@ def resolve_doc_route(query: str, lang: str = "ko") -> DocRoute | None:
     if not q:
         return None
 
-    for pattern, doc_ids, subcategory in _ROUTE_RULES:
-        if re.search(pattern, q, re.I):
-            doc_id = _pick_doc_id(doc_ids, lang)
+    for rule in _get_rules():
+        if rule.exclude and rule.exclude.search(q):
+            continue
+        if rule.pattern.search(q):
+            doc_id = _pick_doc_id(rule.doc_ids, lang)
             if doc_id:
-                return DocRoute(doc_id=doc_id, subcategory=subcategory)
-
-    if _ALIEN_REGISTRATION_RE.search(q) and not _ALIEN_REGISTRATION_EXCLUDE_RE.search(q):
-        doc_id = _pick_doc_id(_ALIEN_REGISTRATION_DOC_IDS, lang)
-        if doc_id:
-            return DocRoute(doc_id=doc_id, subcategory="alien_registration")
+                return DocRoute(doc_id=doc_id, subcategory=rule.subcategory)
 
     return None

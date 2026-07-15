@@ -6,13 +6,13 @@ from contextlib import asynccontextmanager
 from typing import Literal
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, model_validator
 
 from rag.answer_composer import unknown_message
-from rag.config import MAX_QUERY_LENGTH, PRELOAD_MODELS
-from rag.doc_router import resolve_doc_route
+from rag.config import ADMIN_TOKEN, CORS_ORIGINS, MAX_QUERY_LENGTH, PRELOAD_MODELS
+from rag.doc_router import refresh_route_rules, resolve_doc_route
 from rag.generator import generate_answer, generate_answer_from_source
 from rag.indexer import LoadedSource, build_index
 from rag.source_loader import load_source_by_doc_id
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 retriever: Retriever | None = None
 
-AnswerStatus = Literal["answered", "confirm_needed", "unknown"]
+AnswerStatus = Literal["answered", "unknown"]
 
 
 def _release_ml_resources() -> None:
@@ -53,6 +53,7 @@ async def lifespan(app: FastAPI):
     global retriever
     count = build_index()
     logger.info("RAG index chunks: %s", count)
+    refresh_route_rules()
     retriever = Retriever()
 
     if PRELOAD_MODELS:
@@ -71,8 +72,9 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="KU International Student Chat API", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=["*"] if CORS_ORIGINS == "*" else [o.strip() for o in CORS_ORIGINS.split(",") if o.strip()],
+    # 쿠키/세션 인증을 쓰지 않는 API — allow_origins="*"와 credentials=True는 스펙상 무효 조합이라 끔.
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -81,15 +83,11 @@ app.add_middleware(
 class ChatRequest(BaseModel):
     message: str = Field(default="", max_length=MAX_QUERY_LENGTH)
     lang: Literal["ko", "en", "zh", "ja"] = "ko"
-    confirm: Literal["yes", "no"] | None = None
-    pending_id: str | None = None
 
     @model_validator(mode="after")
-    def require_message_on_first_turn(self):
-        if self.confirm is None and not self.message.strip():
-            raise ValueError("message is required on first turn")
-        if self.confirm is not None and not self.pending_id:
-            raise ValueError("pending_id is required when confirm is set")
+    def require_message(self):
+        if not self.message.strip():
+            raise ValueError("message is required")
         return self
 
 
@@ -108,8 +106,6 @@ class ChatResponse(BaseModel):
     answer: str
     citations: list[Citation]
     model_used: bool = False
-    pending_id: str | None = None
-    confirm_prompt: str | None = None
     safety_notice: str | None = None
 
 
@@ -162,7 +158,7 @@ def _unknown_response(lang: str) -> ChatResponse:
 
 @app.get("/health")
 def health():
-    n = retriever._collection.count() if retriever else 0
+    n = retriever.count() if retriever else 0
     embedder_ready = retriever.embedder_is_ready() if retriever else False
     llm_ready = llm_is_ready()
     return {
@@ -172,6 +168,7 @@ def health():
         "llm_ready": llm_ready,
         "models_ready": embedder_ready and llm_ready,
         "preload_enabled": PRELOAD_MODELS,
+        "max_query_length": MAX_QUERY_LENGTH,
     }
 
 
@@ -202,8 +199,8 @@ def chat(req: ChatRequest):
                 safety_notice=notice,
             )
 
-    # 라우팅 실패 — 청크 검색 fallback
-    retrieval = retriever.search_with_band(q)
+    # 라우팅 실패 — 청크 검색 fallback (route는 위에서 이미 계산됨, 재계산 생략)
+    retrieval = retriever.search_with_band(q, route=route)
     notice = safety_notice_for_docs(response_lang, retrieval.docs)
 
     if retrieval.band in ("none", "low") or not retrieval.docs:
@@ -251,14 +248,18 @@ def _build_answer(
 
 
 @app.post("/admin/reindex")
-def reindex():
-    """개발용: 인덱스 재구축."""
+def reindex(x_admin_token: str | None = Header(default=None)):
+    """인덱스 재구축. CHATBOT_ADMIN_TOKEN이 설정된 배포 환경에서는 X-Admin-Token 헤더 일치를 요구."""
+    if ADMIN_TOKEN and x_admin_token != ADMIN_TOKEN:
+        raise HTTPException(403, "Invalid or missing X-Admin-Token")
+
     global retriever
 
     if retriever is not None:
         retriever.shutdown()
 
     n = build_index(force=True)
+    refresh_route_rules()
     retriever = Retriever()
 
     return {"indexed_chunks": n}

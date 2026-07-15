@@ -5,6 +5,8 @@ source_title: "Health Insurance for International Students"
 curated_language: "en"
 category: "insurance"
 subcategory: "national_health_insurance"
+route_patterns:
+  - '건강보험|국민건강보험|보험료|보험|health\s*insurance|national\s*health\s*insurance|\bnhi\b|insurance\s*premium|健康保险|国民健康保险|保险费|健康保険|国民健康保険|保険料'
 target_audience: "international_students"
 onboarding_stage: "pre"
 sensitive_topic: "insurance"

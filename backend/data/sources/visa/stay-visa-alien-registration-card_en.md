@@ -5,6 +5,16 @@ source_title: "Stay · Visa · Alien Registration Card"
 curated_language: "en"
 category: "visa"
 subcategory: "alien_registration"
+route_patterns:
+  - '외국인\s*등록|외국인등록|alien\s*regist|foreign(?:er)?\s*regist'
+  - '재발급|분실|훼손|재\s*발급|reissue|re[-\s]*issue|lost.*card|card.*lost|damaged.*card'
+  - '체류지\s*변경|주소\s*변경|주소\s*신고|address\s*change|change.*address|notify.*address|update.*address|new\s*address|move.*address'
+  - '정보\s*변경|인적\s*사항|성명\s*변경|체류자격\s*변경|name\s*change|information\s*change|update\s*registration\s*info|change.*registration.*info|update.*alien.*regist'
+  - '체류\s*연장|체류기간\s*연장|체류지\s*연장|stay\s*extension|extend.*stay|stay.*extend|extend.*period|stay.*period.*extend|visa.*extens|stay.*renew|renewal.*stay|renew.*stay'
+  - '시간제|아르바이트|part[-\s]*time|work\s*permit|campus\s*job|student\s*work'
+  - '재입국|re[-\s]*entry|reentry'
+  - '방문\s*예약|visit\s*reservation|hikorea.*visit|visit.*hikorea|book.*hikorea|hikorea.*book|hikorea.*appointment|make.*appointment.*hikorea|schedule.*hikorea|hikorea.*reserv'
+  - '전자\s*민원|온라인\s*신청|online\s*civil|hikorea.*online|online.*hikorea|electronic.*application|e[-\s]*application|online.*civil.*application'
 target_audience: "international_students"
 onboarding_stage: "pre"
 sensitive_topic: "immigration"

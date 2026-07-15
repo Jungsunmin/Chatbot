@@ -5,6 +5,8 @@ source_title: "Dormitory Application"
 curated_language: "en"
 category: "housing"
 subcategory: "dormitory_application"
+route_patterns:
+  - '기숙사|생활관|숙소\s*신청|기숙사\s*신청|dormitory|dorm\s*application|housing\s*application|kul?\s*house|宿舍|宿舍申请|住宿申请|寮|学生寮|寮申請|宿舎'
 target_audience: "international_students"
 onboarding_stage: "pre"
 sensitive_topic: "housing"

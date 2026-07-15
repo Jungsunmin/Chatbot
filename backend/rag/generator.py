@@ -102,7 +102,6 @@ def _run_llm(system: str, user: str) -> str | None:
             **inputs,
             max_new_tokens=_MAX_NEW_TOKENS,
             do_sample=False,
-            temperature=1.0,
         )
         new_tokens = outputs[0][inputs["input_ids"].shape[1] :]
         raw = tokenizer.decode(new_tokens, skip_special_tokens=True).strip()
